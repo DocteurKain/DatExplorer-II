@@ -4,6 +4,8 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
 
+using DATExplorer.Properties;
+
 using DATLib;
 
 namespace DATExplorer
@@ -32,13 +34,14 @@ namespace DATExplorer
             dragDropFileWatcher.DragDrop += new FileWatcher.DropExplorerEvent(DropHandler);
             DATManage.ExtractUpdate += new ExtractEvent(ExtractUpdate);
         }
-        
+
         private void ExplorerForm_Shown(object sender, EventArgs e)
         {
             if (arg != null) {
                 OpenDatFile(arg);
-            } else { 
+            } else if (Settings.Default.IsAssoc == 0) {
                 FileAssociation.Associate();
+                Settings.Default.IsAssoc = 2;
             }
         }
 
@@ -124,7 +127,7 @@ namespace DATExplorer
         private void FindFiles(string datPath, string path)
         {
             OpenDat dat = openDat.Find(x => x.DatName == datPath);
-            
+
             List<String> subDirs = new List<String>();
             int len = path.Length;
 
@@ -170,7 +173,7 @@ namespace DATExplorer
             }
             filesListView.EndUpdate();
 
-            toolStripStatusLabelEmpty.Text = string.Format("{0} folder(s), and {1} file(s).", dirCount, filesListView.Items.Count - dirCount); 
+            toolStripStatusLabelEmpty.Text = string.Format("{0} folder(s), and {1} file(s).", dirCount, filesListView.Items.Count - dirCount);
             totalToolStripStatusLabel.Text = dat.TotalFiles.ToString();
             dirToolStripStatusLabel.Text = "Directory: " + path + '\\';
         }
@@ -207,7 +210,7 @@ namespace DATExplorer
             extractFolderToolStripMenuItem.Enabled = true;
         }
 
-        #region Menu control  
+        #region Menu control
         private void ListViewStyleCheck(View type) {
             switch (type) {
             case View.LargeIcon:
@@ -227,7 +230,7 @@ namespace DATExplorer
                 break;
             }
         }
-        
+
         private void largeToolStripMenuItem_Click(object sender, EventArgs e) {
             filesListView.View = View.LargeIcon;
             ListViewStyleCheck(View.LargeIcon);
@@ -253,18 +256,18 @@ namespace DATExplorer
         {
             var selectedFiles = filesListView.SelectedItems;
             List<String> listFiles = new List<String>();
-            
+
             foreach (ListViewItem item in selectedFiles)
             {
                 if (item.Tag != null) {
                     listFiles.Add(((sFile)item.Tag).path);
-                } else { // selected folder 
+                } else { // selected folder
                     GetFolderFiles(listFiles, item.Name);
                 }
             }
             ExtractFiles(listFiles.ToArray());
         }
-        
+
         private void extractFolderToolStripMenuItem_Click(object sender, EventArgs e)
         {
             List<String> listFiles = new List<String>();
@@ -282,14 +285,14 @@ namespace DATExplorer
         {
             var item = filesListView.SelectedItems[0];
             if (item.Tag != null) {
-                // TODO open file 
+                // TODO open file
             } else {
                 // folder
                 foreach (TreeNode node in folderTreeView.SelectedNode.Nodes)
                 {
                     if (node.Text == item.Text) {
                         folderTreeView.SelectedNode = node;
-                        break; 
+                        break;
                     }
                 }
                 FindFiles(currentDat, item.Name + '\\');
@@ -300,7 +303,7 @@ namespace DATExplorer
         {
             if (!filesListView.CheckBoxes && filesListView.SelectedItems.Count > 0) {
                 OpenFile();
-            } 
+            }
         }
 
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
@@ -380,7 +383,7 @@ namespace DATExplorer
                     {
                         if (item.Tag != null) {
                             dropSelected.Add(((sFile)item.Tag).path);
-                        } else { // for selected folder 
+                        } else { // for selected folder
                             GetFolderFiles(dropSelected, item.Name);
                         }
                     }
@@ -403,7 +406,7 @@ namespace DATExplorer
             if (dragToExternal) dragDropFileWatcher.StopWatcher();
             dragAllow = dragToExternal = false;
         }
-        
+
         // Drop to List
         private void filesListView_DragDrop(object sender, DragEventArgs e)
         {
@@ -425,6 +428,7 @@ namespace DATExplorer
         private void ExplorerForm_FormClosed(object sender, FormClosedEventArgs e)
         {
             dragDropFileWatcher.Dispose();
+            Settings.Default.Save();
         }
     }
 }

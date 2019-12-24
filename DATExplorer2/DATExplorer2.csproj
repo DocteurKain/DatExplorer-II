@@ -84,6 +84,7 @@
     <EmbeddedResource Include="WaitForm.resx">
       <DependentUpon>WaitForm.cs</DependentUpon>
     </EmbeddedResource>
+    <None Include="app.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -104,6 +105,9 @@
     <None Include="Resources\ViewThumbnails.bmp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="dat.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <Content Include="zippedFile.ico" />
     <None Include="Resources\NavForward.png" />
     <None Include="Resources\NavBack.png" />
