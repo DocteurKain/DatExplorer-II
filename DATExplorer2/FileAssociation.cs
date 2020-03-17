@@ -33,7 +33,7 @@ namespace DATExplorer
             {
                 key.SetValue("", "Fallout Dat Explorer 2");
                 key.SetValue("AlwaysShowExt", "");
-                key.CreateSubKey("DefaultIcon").SetValue("", "dat.ico");
+                key.CreateSubKey("DefaultIcon").SetValue("", Application.StartupPath + "\\dat.ico");
                 key.CreateSubKey("Shell").SetValue("", "OpenDatExplorer");
                 key.CreateSubKey(@"Shell\OpenDatExplorer").SetValue("", "Fallout Dat Explorer");
                 key.CreateSubKey(@"Shell\OpenDatExplorer\Command").SetValue("", Application.ExecutablePath + " \"%1\"");
