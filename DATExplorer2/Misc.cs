@@ -8,6 +8,22 @@ namespace DATExplorer
 {
     static class Misc
     {
+        internal static string GetNodeFullPath(TreeNode node)
+        {
+            string full = node.FullPath;
+            return full.Remove(0, full.IndexOf("]") + 2);
+        }
+
+        /// <summary>
+        /// Возвращает имя и путь к файлу
+        /// </summary>
+        /// <param name="node"></param>
+        /// <returns></returns>
+        internal static string GetDatName(TreeNode node)
+        {
+            return (node.Parent == null) ? node.Name : GetRootNode(node.Parent).Name;
+        }
+
         internal static TreeNode GetRootNode(TreeNode node)
         {
             if (node.Parent != null) {
@@ -21,7 +37,7 @@ namespace DATExplorer
         {
             foreach (TreeNode nd in node.Nodes)
             {
-                if (nd.Text == name) { 
+                if (nd.Text == name) {
                     return nd;
                 }
                 TreeNode find = FindNode(name, nd);
@@ -29,7 +45,7 @@ namespace DATExplorer
             }
             return null;
         }
- 
+
         internal static void GetFolderFiles(OpenDat dat, List<String> listFiles, string folderPath)
         {
             TreeFiles datFolders;
@@ -44,14 +60,14 @@ namespace DATExplorer
             folderPath += '\\';
             foreach (var folder in folders)
             {
-                if (folder.StartsWith(folderPath)) { 
+                if (folder.StartsWith(folderPath)) {
                     datFolders = dat.Folders[folder];
                     foreach (var file in datFolders.GetFiles())
-	                {
-		                listFiles.Add(file.path);
-	                }
+                    {
+                        listFiles.Add(file.path);
+                    }
                 }
-            } 
+            }
         }
     }
 }

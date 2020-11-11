@@ -11,6 +11,8 @@ namespace DATExplorer
         private string nameDat;
         private string[] listFiles;
 
+        private bool singleFile = false;
+
         public WaitForm(string unpackPath, string[] listFiles, string nameDat, string cutPath)
         {
             this.unpackPath = unpackPath + '\\';
@@ -26,6 +28,12 @@ namespace DATExplorer
             this.ShowDialog(owner);
         }
 
+        public void UnpackFile(Form owner)
+        {
+            this.singleFile = true;
+            this.ShowDialog(owner);
+        }
+
         private void WaitForm_Shown(object sender, EventArgs e)
         {
             if (System.Globalization.CultureInfo.CurrentCulture.Name == "ru-RU")
@@ -33,12 +41,14 @@ namespace DATExplorer
             else
                 label1.Text = "Please wait extraction of files...";
 
-            if (listFiles != null) {
+            if (this.singleFile) {
+                DATManage.ExtractFile(unpackPath, listFiles[0], nameDat);
+            } else if (listFiles != null) {
                 if (cutPath != string.Empty)
-                    DATManage.UnpackFileList(unpackPath, listFiles, nameDat, cutPath);
+                    DATManage.ExtractFileList(unpackPath, listFiles, nameDat, cutPath);
                 else
-                    DATManage.UnpackFileList(unpackPath, listFiles, nameDat);
-            } else { 
+                    DATManage.ExtractFileList(unpackPath, listFiles, nameDat);
+            } else {
                 DATManage.ExtractAllFiles(unpackPath, nameDat);
             }
             this.Dispose();

@@ -7,23 +7,23 @@ namespace DATExplorer
     public class FileWatcher
     {
         private static readonly string tmpAppFolder = Application.StartupPath + "\\tmp\\";
-        
+
         // Filename to identify a drag from the application
         private string dragDropTmpFile;
 
         // The item which we drag is being stored here
         //internal static object objDragItem;
 
-        // A FileSystemWatcher to monitor the System's Temp Directory for a drag 
+        // A FileSystemWatcher to monitor the System's Temp Directory for a drag
         private FileSystemWatcher directoryWatcher;
 
-        // A List to keep multiple FileSystemWatchers 
+        // A List to keep multiple FileSystemWatchers
         private List<FileSystemWatcher> watchers = null;
 
         public FileWatcher()
         {
-            Directory.CreateDirectory(tmpAppFolder);
-            
+            if (!Directory.Exists(tmpAppFolder)) Directory.CreateDirectory(tmpAppFolder);
+
             directoryWatcher = new FileSystemWatcher();
             directoryWatcher.Path = tmpAppFolder;
             directoryWatcher.NotifyFilter = NotifyFilters.FileName;
@@ -45,7 +45,7 @@ namespace DATExplorer
         {
             directoryWatcher.EnableRaisingEvents = false;
             ClearFileWatchers();
-            File.Delete(directoryWatcher.Path + dragDropTmpFile);
+            //File.Delete(directoryWatcher.Path + dragDropTmpFile); // тут иногда возникает исключение о том что файл занят другим приложением
         }
 
         private void TempDirectoryWatcherCreated(object sender, FileSystemEventArgs e)
@@ -54,7 +54,7 @@ namespace DATExplorer
                 List<FileSystemWatcher> tempWatchers = new List<FileSystemWatcher>();
                 FileSystemWatcher watcher;
 
-                // Adding FileSystemWatchers and adding Created event to it 
+                // Adding FileSystemWatchers and adding Created event to it
                 foreach (string driveName in Directory.GetLogicalDrives())
                 {
                     if (Directory.Exists(driveName)) {
@@ -76,15 +76,17 @@ namespace DATExplorer
         {
             //if (objDragItem == null) return;
             OnDropped(e.FullPath);
-reTry:
-            try {         
+
+        reTry:
+            try {
                 File.Delete(e.FullPath);
-            } catch (System.Exception) {
+            }
+            catch (System.Exception) {
                 goto reTry;
             }
             //objDragItem = null;
         }
-        
+
         private void ClearFileWatchers()
         {
             if (watchers != null) {
@@ -118,7 +120,7 @@ reTry:
             protected string path;
 
             public string PathDrop { get { return path; } }
- 
+
             public DropEventArgs(string path)
             {
                 this.path = Path.GetDirectoryName(path);
