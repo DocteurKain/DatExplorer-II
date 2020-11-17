@@ -69,7 +69,7 @@ namespace DATExplorer
 
         public bool IsFO2Type() { return dat.IsFallout2Type; }
 
-        public OpenDat(string datFile, Dictionary<String, DATLib.FileInfo> files)
+        internal OpenDat(string datFile, Dictionary<String, DATLib.FileInfo> files)
         {
             this.datFile = datFile;
             dat = DATManage.GetDat(datFile);
@@ -78,7 +78,7 @@ namespace DATExplorer
             BuildFolderTree(files);
         }
 
-        public void CloseDat()
+        internal void CloseDat()
         {
             DATManage.CloseDatFile(datFile);
         }
@@ -110,9 +110,24 @@ namespace DATExplorer
             }
         }
 
-        public void AddVirtualFile(string pathFile, string treeFolderPath)
+        internal void GetFilesFromFolder(List<String> listFiles, string folderName, bool includeSubDirs = true)
         {
-            // не добавляем дубликаты
+            foreach (var folder in Folders.Keys)
+            {
+                if (includeSubDirs) {
+                    if (!folder.StartsWith(folderName)) continue;
+                } else if (folder != folderName) continue;
+
+                foreach (var file in Folders[folder].GetFiles())
+                {
+                    listFiles.Add(file.path);
+                }
+            }
+        }
+
+        internal void AddVirtualFile(string pathFile, string treeFolderPath)
+        {
+            //TODO: не добавляем дубликаты
             //if (!addedFiles.ContainsKey(fileDat)) addedFiles.Add(fileDat, pathFile);
 
             System.IO.FileInfo file = new System.IO.FileInfo(pathFile);
@@ -134,7 +149,7 @@ namespace DATExplorer
             if (shouldSave != SaveType.New) shouldSave = SaveType.Append;
         }
 
-        public void RenameFolder(string pathFolder, string fullFolderPath, string newNameFolder)
+        internal void RenameFolder(string pathFolder, string fullFolderPath, string newNameFolder)
         {
             string newPath = pathFolder.Remove(pathFolder.LastIndexOf('\\') + 1) + newNameFolder;
 
@@ -166,21 +181,42 @@ namespace DATExplorer
             if (shouldSave == SaveType.None) shouldSave = SaveType.DirTree;
         }
 
-        public void DeleteFile(List<string> pathFileList)
+        internal void DeleteFile(List<string> pathFileList, bool alsoFolder)
         {
+            // удаление файлов из дерева (остаются только пустые папки если в них нет файлов)
+            string folder = null;
+            TreeFiles values = null;
+
+            List<string> folders = new List<string>();
+            for (int i = 0; i < pathFileList.Count; i++)
+            {
+                string file = pathFileList[i];
+                if (folder == null) {
+                    folder = file.Remove(file.LastIndexOf('\\'));
+                    values = treeFiles[folder];
+                    folders.Add(folder);
+                }
+
+                string f = file.Remove(file.LastIndexOf('\\'));
+                if (f != folder) {
+                    folder = f;
+                    values = treeFiles[folder];
+                    folders.Add(folder);
+                }
+                values.RemoveFile(file);
+            }
+            if (alsoFolder) {
+                foreach (var f in folders) if (treeFiles[f].GetFiles().Count == 0) treeFiles.Remove(f);
+            }
+
             // удаление файлов из Dat
             bool isDeleted = dat.RemoveFile(pathFileList);
-
-            // удаление файлов из дерева
-
-
-
 
             TotalFiles -= pathFileList.Count;
             if (isDeleted) shouldSave = SaveType.New;
         }
 
-        public bool SaveDat()
+        internal bool SaveDat()
         {
             switch (shouldSave)
             {

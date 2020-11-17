@@ -12,6 +12,24 @@ namespace DATExplorer
         private string[] listFiles;
 
         private bool singleFile = false;
+        private bool removeFile = false;
+
+        ExplorerForm ownerFrm;
+        ListView.SelectedListViewItemCollection list;
+
+        public WaitForm(string path)
+        {
+            this.listFiles = new string[1] { path };
+
+            InitializeComponent();
+        }
+
+        public WaitForm(ListView.SelectedListViewItemCollection list)
+        {
+            this.list = list;
+
+            InitializeComponent();
+        }
 
         public WaitForm(string unpackPath, string[] listFiles, string nameDat, string cutPath)
         {
@@ -34,7 +52,23 @@ namespace DATExplorer
             this.ShowDialog(owner);
         }
 
+        public void RemoveFile(Form owner)
+        {
+            this.removeFile = true;
+            this.ownerFrm = (ExplorerForm)owner;
+            this.ShowDialog(owner);
+        }
+
         private void WaitForm_Shown(object sender, EventArgs e)
+        {
+            if (removeFile)
+                Remove();
+            else
+                Extraction();
+            this.Dispose();
+        }
+
+        private void Extraction()
         {
             if (System.Globalization.CultureInfo.CurrentCulture.Name == "ru-RU")
                 label1.Text = "Подождите идет извлечение файлов...";
@@ -51,7 +85,21 @@ namespace DATExplorer
             } else {
                 DATManage.ExtractAllFiles(unpackPath, nameDat);
             }
-            this.Dispose();
+        }
+
+        private void Remove()
+        {
+            if (System.Globalization.CultureInfo.CurrentCulture.Name == "ru-RU")
+                label1.Text = "Подождите идет удаление файлов...";
+            else
+                label1.Text = "Wait for the files to be deleted...";
+
+            Application.DoEvents();
+
+            if (listFiles != null)
+                ownerFrm.DeleteFiles(listFiles[0]);
+            else
+                ownerFrm.DeleteFiles(list);
         }
     }
 }

@@ -39,6 +39,17 @@ namespace DATExplorer
             m_file.Add(new sFile(file.Key, file.Value));
         }
 
+        public void RemoveFile(string file)
+        {
+            for (int i = 0; i < m_file.Count; i++)
+            {
+                if (m_file[i].path == file) {
+                    m_file.RemoveAt(i);
+                    return;
+                }
+            }
+        }
+
         public void UpdateFileInfo(int index, Info info)
         {
             sFile nf = m_file[index];

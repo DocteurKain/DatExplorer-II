@@ -45,29 +45,5 @@ namespace DATExplorer
             }
             return null;
         }
-
-        internal static void GetFolderFiles(OpenDat dat, List<String> listFiles, string folderPath)
-        {
-            TreeFiles datFolders;
-            if (dat.Folders.TryGetValue(folderPath, out datFolders)) {
-                foreach (var file in datFolders.GetFiles())
-                {
-                    listFiles.Add(file.path);
-                }
-            }
-            // get files from sub folders
-            var folders = dat.Folders.Keys;
-            folderPath += '\\';
-            foreach (var folder in folders)
-            {
-                if (folder.StartsWith(folderPath)) {
-                    datFolders = dat.Folders[folder];
-                    foreach (var file in datFolders.GetFiles())
-                    {
-                        listFiles.Add(file.path);
-                    }
-                }
-            }
-        }
     }
 }
