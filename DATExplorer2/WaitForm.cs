@@ -11,60 +11,88 @@ namespace DATExplorer
         private string nameDat;
         private string[] listFiles;
 
-        private bool singleFile = false;
-        private bool removeFile = false;
+        enum WorkState {
+            Extract,
+            ExtractSingle,
+            Delete,
+            Save,
+            SaveAppend
+        }
+
+        private WorkState state = WorkState.Extract;
 
         ExplorerForm ownerFrm;
         ListView.SelectedListViewItemCollection list;
 
-        public WaitForm(string path)
+        public WaitForm(Form owner)
         {
-            this.listFiles = new string[1] { path };
+            this.ownerFrm = (ExplorerForm)owner;
 
             InitializeComponent();
         }
 
-        public WaitForm(ListView.SelectedListViewItemCollection list)
+        public void Unpack(string unpackPath, string[] listFiles, string nameDat, string cutPath)
         {
-            this.list = list;
+            this.state = WorkState.Extract;
 
-            InitializeComponent();
-        }
-
-        public WaitForm(string unpackPath, string[] listFiles, string nameDat, string cutPath)
-        {
             this.unpackPath = unpackPath + '\\';
             this.listFiles = listFiles;
             this.nameDat = nameDat;
             this.cutPath = cutPath;
 
-            InitializeComponent();
+            this.ShowDialog(ownerFrm);
         }
 
-        public void Unpack(Form owner)
+        public void UnpackFile(string unpackPath, string[] listFiles, string nameDat)
         {
-            this.ShowDialog(owner);
+            this.state = WorkState.ExtractSingle;
+
+            this.unpackPath = unpackPath + '\\';
+            this.listFiles = listFiles;
+            this.nameDat = nameDat;
+
+            this.ShowDialog(ownerFrm);
         }
 
-        public void UnpackFile(Form owner)
+        public void RemoveFile(string file)
         {
-            this.singleFile = true;
-            this.ShowDialog(owner);
+            this.state = WorkState.Delete;
+            this.listFiles = new string[1] { file };
+
+            this.ShowDialog(ownerFrm);
         }
 
-        public void RemoveFile(Form owner)
+        public void RemoveFile(ListView.SelectedListViewItemCollection list)
         {
-            this.removeFile = true;
-            this.ownerFrm = (ExplorerForm)owner;
-            this.ShowDialog(owner);
+            this.state = WorkState.Delete;
+            this.list = list;
+
+            this.ShowDialog(ownerFrm);
+        }
+
+        public void SaveDat(string nameDat, bool isAppend)
+        {
+            this.state = (isAppend) ? WorkState.SaveAppend : WorkState.Save;
+            this.nameDat = nameDat;
+
+            this.ShowDialog(ownerFrm);
         }
 
         private void WaitForm_Shown(object sender, EventArgs e)
         {
-            if (removeFile)
-                Remove();
-            else
-                Extraction();
+            switch (this.state)
+            {
+                case WorkState.Extract:
+                case WorkState.ExtractSingle:
+                    Extraction();
+                    break;
+                case WorkState.Delete:
+                    Remove();
+                    break;
+                case WorkState.Save:
+                    Saving();
+                    break;
+            }
             this.Dispose();
         }
 
@@ -75,9 +103,10 @@ namespace DATExplorer
             else
                 label1.Text = "Please wait extraction of files...";
 
-            if (this.singleFile) {
+            if (this.state == WorkState.ExtractSingle) {
                 DATManage.ExtractFile(unpackPath, listFiles[0], nameDat);
-            } else if (listFiles != null) {
+            }
+            else if (listFiles != null) {
                 if (cutPath != string.Empty)
                     DATManage.ExtractFileList(unpackPath, listFiles, nameDat, cutPath);
                 else
@@ -100,6 +129,21 @@ namespace DATExplorer
                 ownerFrm.DeleteFiles(listFiles[0]);
             else
                 ownerFrm.DeleteFiles(list);
+        }
+
+        private void Saving()
+        {
+            if (System.Globalization.CultureInfo.CurrentCulture.Name == "ru-RU")
+                label1.Text = "Подождите идет сохранение Dat файла...";
+            else
+                label1.Text = "Wait for the files to be deleted...";
+
+            Application.DoEvents();
+
+            if (this.state == WorkState.Save)
+                DATManage.SaveDAT(nameDat);
+            else
+                DATManage.AppendFilesDAT(nameDat);
         }
     }
 }

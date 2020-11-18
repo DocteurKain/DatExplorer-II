@@ -46,7 +46,8 @@ namespace DATExplorer
 
             dragDropFileWatcher.DragDrop += new FileWatcher.DropExplorerEvent(DropHandler);
             DATManage.ExtractUpdate += new ExtractEvent(ExtractUpdateEvent);
-            DATManage.RemoveFile += RemoveFileEvent;
+            DATManage.RemoveFile += FileEvent;
+            DATManage.SavingFile += FileEvent;
         }
 
         private void ExplorerForm_Shown(object sender, EventArgs e)
@@ -109,7 +110,7 @@ namespace DATExplorer
             Application.DoEvents();
         }
 
-        void RemoveFileEvent(DAT.RemoveEventArgs e)
+        void FileEvent(FileEventArgs e)
         {
             toolStripProgressBar.Value++;
             textToolStripStatusLabel.Text = e.File;
@@ -142,7 +143,7 @@ namespace DATExplorer
             toolStripProgressBar.Maximum = (listFiles != null)  ? listFiles.Length
                                          : ControlDat.GetDat(currentDat).TotalFiles;
 
-            new WaitForm(extractToPath, listFiles, currentDat, cutPath).Unpack(this);
+            new WaitForm(this).Unpack(extractToPath, listFiles, currentDat, cutPath);
 
             textToolStripStatusLabel.Text = successExtracted + " of " + toolStripProgressBar.Maximum + " files.";
             toolStripProgressBar.Value = 0;
@@ -376,9 +377,10 @@ namespace DATExplorer
                 if (((sFile)item.Tag).isVirtual) return;
 
                 var file = new string[1] { ((sFile)item.Tag).path };
-                new WaitForm(Application.StartupPath + "\\tmp\\", file, currentDat, null).UnpackFile(this);
+                new WaitForm(this).UnpackFile(Application.StartupPath + "\\tmp\\", file, currentDat);
 
-                System.Diagnostics.Process.Start("explorer", Application.StartupPath + "\\tmp\\" + file[0]);
+                string ofile = Application.StartupPath + "\\tmp\\" + file[0];
+                if (File.Exists(ofile)) System.Diagnostics.Process.Start("explorer", ofile);
             } else { // folder
                 foreach (TreeNode node in folderTreeView.SelectedNode.Nodes)
                 {
@@ -695,10 +697,16 @@ namespace DATExplorer
 
             if (MessageBox.Show(message, "Dat Explorer II", MessageBoxButtons.YesNo) == DialogResult.No) return;
 
+            statusToolStripStatusLabel.Text = "Saving:";
+            textToolStripStatusLabel.Text = "Prepare...";
+            toolStripProgressBar.Maximum = dat.TotalFiles;
+
             if (dat.SaveDat()) {
                FindFiles(currentDat, folderTreeView.SelectedNode.Name + "\\");
             }
+
             SaveToolStripButton.Enabled = false;
+            toolStripProgressBar.Value = 0;
         }
 
         private void ExplorerForm_SizeChanged(object sender, EventArgs e)
@@ -710,36 +718,34 @@ namespace DATExplorer
 
         private void deleteFolderToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            TreeNode node = folderTreeView.SelectedNode;
-            if (node == null || MessageBox.Show("Вы действительно хотите это удалить?", "Dat Explorer II", MessageBoxButtons.YesNo) == DialogResult.No) return;
-
-            statusToolStripStatusLabel.Text = "Deleting:";
-            textToolStripStatusLabel.Text = "Prepare...";
-
-            new WaitForm(node.Name).RemoveFile(this);
-
-            folderTreeView.Nodes.Remove(node);
-            DeleteDone();
+            if (folderTreeView.SelectedNode != null) Delete(false);
         }
 
         private void deleteFilesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (filesListView.SelectedItems.Count == 0 ||
-                MessageBox.Show("Вы действительно хотите это удалить?", "Dat Explorer II", MessageBoxButtons.YesNo) == DialogResult.No) return;
+            if (filesListView.SelectedItems.Count > 0) Delete(true);
+        }
+
+        private void Delete(bool isList)
+        {
+            if (MessageBox.Show("Вы действительно хотите это удалить?", "Dat Explorer II", MessageBoxButtons.YesNo) == DialogResult.No) return;
 
             statusToolStripStatusLabel.Text = "Deleting:";
             textToolStripStatusLabel.Text = "Prepare...";
 
-            new WaitForm(filesListView.SelectedItems).RemoveFile(this);
+            if (isList) {
+                new WaitForm(this).RemoveFile(filesListView.SelectedItems);
+                FindFiles(currentDat, currentNode.Name + "\\");
+            } else {
+                new WaitForm(this).RemoveFile(currentNode.Name);
+                folderTreeView.Nodes.Remove(currentNode);
+            }
 
-            FindFiles(currentDat, currentNode.Name + "\\");
-            DeleteDone();
-        }
-
-        private void DeleteDone()
-        {
-            textToolStripStatusLabel.Text = toolStripProgressBar.Value + " files.";
+            textToolStripStatusLabel.Text = toolStripProgressBar.Value + " file(s)";
             toolStripProgressBar.Value = 0;
+            var dat = ControlDat.GetDat(currentDat);
+            totalToolStripStatusLabel.Text = dat.TotalFiles.ToString();
+            if (dat.ShouldSave()) SaveToolStripButton.Enabled = true;
         }
 
         internal void DeleteFiles(string path)

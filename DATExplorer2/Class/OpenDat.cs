@@ -53,7 +53,6 @@ namespace DATExplorer
 
         private string datFile;
         private DAT dat;
-        //public DAT Dat { get { return dat; } }
 
         private SortedDictionary<String, TreeFiles> treeFiles; //
 
@@ -209,11 +208,10 @@ namespace DATExplorer
                 foreach (var f in folders) if (treeFiles[f].GetFiles().Count == 0) treeFiles.Remove(f);
             }
 
-            // удаление файлов из Dat
-            bool isDeleted = dat.RemoveFile(pathFileList);
-
             TotalFiles -= pathFileList.Count;
-            if (isDeleted) shouldSave = SaveType.New;
+
+            // удаление файлов из Dat
+            if (dat.RemoveFile(pathFileList)) shouldSave = SaveType.New;
         }
 
         internal bool SaveDat()
@@ -224,11 +222,9 @@ namespace DATExplorer
                     DATManage.SaveDirectoryStructure(DatName);
                     break;
                 case SaveType.Append:
-                    DATManage.AppendFilesDAT(DatName);
-                    UpdateTreeFiles();
-                    break;
                 case SaveType.New:
-
+                    new WaitForm(ExplorerForm.ActiveForm).SaveDat(DatName, shouldSave == SaveType.Append);
+                    UpdateTreeFiles();
                     break;
             }
             bool refresh = (shouldSave != SaveType.DirTree);
