@@ -20,6 +20,8 @@ namespace DATExplorer
         // A List to keep multiple FileSystemWatchers
         private List<FileSystemWatcher> watchers = null;
 
+        public bool IsRunning { get; private set; }
+
         public FileWatcher()
         {
             if (!Directory.Exists(tmpAppFolder)) Directory.CreateDirectory(tmpAppFolder);
@@ -39,10 +41,12 @@ namespace DATExplorer
             directoryWatcher.EnableRaisingEvents = true;
             var file = File.Create(dragDropFile);
             file.Close();
+            IsRunning = true;
         }
 
         public void StopWatcher()
         {
+            IsRunning = false;
             directoryWatcher.EnableRaisingEvents = false;
             ClearFileWatchers();
             //File.Delete(directoryWatcher.Path + dragDropTmpFile); // тут иногда возникает исключение о том что файл занят другим приложением

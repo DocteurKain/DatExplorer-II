@@ -72,7 +72,6 @@
             this.detailsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.infoToolStripButton = new System.Windows.Forms.ToolStripButton();
-            this.toolStripButton1 = new System.Windows.Forms.ToolStripButton();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.statusToolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.textToolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
@@ -86,6 +85,7 @@
             this.extractFolderBrowser = new System.Windows.Forms.FolderBrowserDialog();
             this.CreateNewDatDialog = new System.Windows.Forms.SaveFileDialog();
             this.importFilesDialog = new System.Windows.Forms.OpenFileDialog();
+            this.folderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog();
             this.cmsFolderTree.SuspendLayout();
             this.listViewContextMenuStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -226,15 +226,13 @@
             this.filesListView.TabIndex = 1;
             this.filesListView.UseCompatibleStateImageBehavior = false;
             this.filesListView.View = System.Windows.Forms.View.List;
+            this.filesListView.ItemDrag += new System.Windows.Forms.ItemDragEventHandler(this.filesListView_ItemDrag);
             this.filesListView.ItemSelectionChanged += new System.Windows.Forms.ListViewItemSelectionChangedEventHandler(this.filesListView_ItemSelectionChanged);
             this.filesListView.DragDrop += new System.Windows.Forms.DragEventHandler(this.filesListView_DragDrop);
             this.filesListView.DragEnter += new System.Windows.Forms.DragEventHandler(this.filesListView_DragEnter);
             this.filesListView.GiveFeedback += new System.Windows.Forms.GiveFeedbackEventHandler(this.filesListView_GiveFeedback);
             this.filesListView.QueryContinueDrag += new System.Windows.Forms.QueryContinueDragEventHandler(this.filesListView_QueryContinueDrag);
             this.filesListView.DoubleClick += new System.EventHandler(this.filesListView_DoubleClick);
-            this.filesListView.MouseDown += new System.Windows.Forms.MouseEventHandler(this.filesListView_MouseDown);
-            this.filesListView.MouseMove += new System.Windows.Forms.MouseEventHandler(this.filesListView_MouseMove);
-            this.filesListView.MouseUp += new System.Windows.Forms.MouseEventHandler(this.filesListView_MouseUp);
             // 
             // columnHeader1
             // 
@@ -282,6 +280,7 @@
             this.openToolStripMenuItem.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.openToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("openToolStripMenuItem.Image")));
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
+            this.openToolStripMenuItem.ShortcutKeyDisplayString = "Enter";
             this.openToolStripMenuItem.Size = new System.Drawing.Size(229, 22);
             this.openToolStripMenuItem.Text = "Open";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
@@ -319,6 +318,7 @@
             this.importFoldersToolStripMenuItem.Text = "Import folder(s) with files";
             this.importFoldersToolStripMenuItem.ToolTipText = "Импортирует выбранные каталоги и их файлы включая структуру вложенных папок в тек" +
     "ущий каталог.";
+            this.importFoldersToolStripMenuItem.Click += new System.EventHandler(this.importFoldersToolStripMenuItem_Click);
             // 
             // toolStripSeparator8
             // 
@@ -346,6 +346,7 @@
             // 
             this.deleteFilesToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("deleteFilesToolStripMenuItem.Image")));
             this.deleteFilesToolStripMenuItem.Name = "deleteFilesToolStripMenuItem";
+            this.deleteFilesToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.Delete;
             this.deleteFilesToolStripMenuItem.Size = new System.Drawing.Size(229, 22);
             this.deleteFilesToolStripMenuItem.Text = "Delete selected file(s)";
             this.deleteFilesToolStripMenuItem.Click += new System.EventHandler(this.deleteFilesToolStripMenuItem_Click);
@@ -398,11 +399,10 @@
             this.toolStripSeparator1,
             this.stileToolStripDropDownButton,
             this.toolStripSeparator3,
-            this.infoToolStripButton,
-            this.toolStripButton1});
+            this.infoToolStripButton});
             this.toolStrip1.Location = new System.Drawing.Point(3, 0);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(342, 37);
+            this.toolStrip1.Size = new System.Drawing.Size(319, 37);
             this.toolStrip1.TabIndex = 3;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -501,7 +501,7 @@
             // largeToolStripMenuItem
             // 
             this.largeToolStripMenuItem.Name = "largeToolStripMenuItem";
-            this.largeToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.largeToolStripMenuItem.Size = new System.Drawing.Size(109, 22);
             this.largeToolStripMenuItem.Text = "Large";
             this.largeToolStripMenuItem.Click += new System.EventHandler(this.largeToolStripMenuItem_Click);
             // 
@@ -510,14 +510,14 @@
             this.listToolStripMenuItem.Checked = true;
             this.listToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.listToolStripMenuItem.Name = "listToolStripMenuItem";
-            this.listToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.listToolStripMenuItem.Size = new System.Drawing.Size(109, 22);
             this.listToolStripMenuItem.Text = "List";
             this.listToolStripMenuItem.Click += new System.EventHandler(this.listToolStripMenuItem_Click);
             // 
             // detailsToolStripMenuItem
             // 
             this.detailsToolStripMenuItem.Name = "detailsToolStripMenuItem";
-            this.detailsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.detailsToolStripMenuItem.Size = new System.Drawing.Size(109, 22);
             this.detailsToolStripMenuItem.Text = "Details";
             this.detailsToolStripMenuItem.Click += new System.EventHandler(this.detailsToolStripMenuItem_Click);
             // 
@@ -528,22 +528,13 @@
             // 
             // infoToolStripButton
             // 
+            this.infoToolStripButton.Enabled = false;
             this.infoToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("infoToolStripButton.Image")));
             this.infoToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.infoToolStripButton.Name = "infoToolStripButton";
             this.infoToolStripButton.Size = new System.Drawing.Size(33, 34);
             this.infoToolStripButton.Text = "Info";
             this.infoToolStripButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            // 
-            // toolStripButton1
-            // 
-            this.toolStripButton1.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStripButton1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton1.Image")));
-            this.toolStripButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripButton1.Name = "toolStripButton1";
-            this.toolStripButton1.Size = new System.Drawing.Size(23, 34);
-            this.toolStripButton1.Text = "toolStripButton1";
-            this.toolStripButton1.Click += new System.EventHandler(this.toolStripButton1_Click);
             // 
             // statusStrip1
             // 
@@ -560,7 +551,6 @@
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(1008, 22);
             this.statusStrip1.TabIndex = 4;
-            this.statusStrip1.Text = "statusStrip1";
             // 
             // statusToolStripStatusLabel
             // 
@@ -590,6 +580,7 @@
             this.toolStripProgressBar.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.toolStripProgressBar.Name = "toolStripProgressBar";
             this.toolStripProgressBar.Size = new System.Drawing.Size(150, 16);
+            this.toolStripProgressBar.Step = 1;
             this.toolStripProgressBar.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
             // 
             // toolStripStatusLabelEmpty
@@ -677,6 +668,12 @@
             // 
             this.importFilesDialog.Filter = "All files|*.*";
             this.importFilesDialog.Multiselect = true;
+            // 
+            // folderBrowserDialog
+            // 
+            this.folderBrowserDialog.Description = "Select folder for import";
+            this.folderBrowserDialog.RootFolder = System.Environment.SpecialFolder.MyComputer;
+            this.folderBrowserDialog.ShowNewFolderButton = false;
             // 
             // ExplorerForm
             // 
@@ -771,11 +768,11 @@
         private System.Windows.Forms.ToolStripMenuItem deleteFilesToolStripMenuItem;
         private System.Windows.Forms.OpenFileDialog importFilesDialog;
         private System.Windows.Forms.ToolStripMenuItem renameFolderToolStripMenuItem;
-        private System.Windows.Forms.ToolStripButton toolStripButton1;
         private System.Windows.Forms.ToolStripMenuItem deleteFolderToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator9;
         private System.Windows.Forms.ToolStripMenuItem renameToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator10;
+        private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog;
     }
 }
 

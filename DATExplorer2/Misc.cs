@@ -45,5 +45,26 @@ namespace DATExplorer
             }
             return null;
         }
+
+        internal static void GetExpandNodes(TreeNode nodes, ref List<TreeNode> expandedNodes)
+        {
+            foreach (TreeNode node in nodes.Nodes)
+            {
+                if (node.IsExpanded) expandedNodes.Add(node);
+                if (node.Nodes.Count > 0) GetExpandNodes(node, ref expandedNodes);
+            }
+        }
+
+        internal static void ExpandNode(TreeNode expandNode, TreeNode inNodes)
+        {
+            foreach (TreeNode node in inNodes.Nodes)
+            {
+                if (node.Text == expandNode.Text) {
+                    node.Expand();
+                    return;
+                }
+                ExpandNode(expandNode, node);
+            }
+        }
     }
 }

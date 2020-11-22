@@ -45,9 +45,10 @@ namespace DATExplorer
             dragDropFileWatcher = new FileWatcher();
 
             dragDropFileWatcher.DragDrop += new FileWatcher.DropExplorerEvent(DropHandler);
-            DATManage.ExtractUpdate += new ExtractEvent(ExtractUpdateEvent);
-            DATManage.RemoveFile += FileEvent;
-            DATManage.SavingFile += FileEvent;
+
+            DAT.ExtractUpdate += ExtractUpdateEvent;
+            DAT.RemoveFile += FileEvent;
+            DAT.SavingFile += InvokeFileEvent;
         }
 
         private void ExplorerForm_Shown(object sender, EventArgs e)
@@ -104,17 +105,29 @@ namespace DATExplorer
 
         private void ExtractUpdateEvent(ExtractEventArgs e)
         {
+            Action action = () =>
+            {
+                textToolStripStatusLabel.Text = e.Name;
+                toolStripProgressBar.Value++;
+            };
+            EndInvoke(BeginInvoke(action));
             if (e.Result) successExtracted++;
-            toolStripProgressBar.Value++;
-            textToolStripStatusLabel.Text = e.Name;
-            Application.DoEvents();
         }
 
         void FileEvent(FileEventArgs e)
         {
+            //textToolStripStatusLabel.Text = e.File;
             toolStripProgressBar.Value++;
-            textToolStripStatusLabel.Text = e.File;
-            Application.DoEvents();
+        }
+
+        void InvokeFileEvent(FileEventArgs e)
+        {
+            Action action = () =>
+            {
+                textToolStripStatusLabel.Text = e.File;
+                toolStripProgressBar.PerformStep();
+            };
+            EndInvoke(BeginInvoke(action));
         }
 
         /// <summary>
@@ -159,6 +172,117 @@ namespace DATExplorer
             ExtractFiles(listFiles.ToArray(), extractToPath, ((cut > 0) ? fullPath.Remove(cut) : String.Empty));
         }
 
+        private void ImportFiles(string[] list)
+        {
+            OpenDat dat = ControlDat.GetDat(currentDat);
+            string treeFolder = GetCurrentTreeFolder();
+
+            foreach (var file in list)
+            {
+                dat.AddVirtualFile(file, treeFolder);
+            }
+            // обновление списка
+            FindFiles(currentDat, treeFolder + "\\");
+
+            SaveToolStripButton.Enabled = true;
+        }
+
+        private void ImportFilesWithFolders(string[] list, string rootFolder)
+        {
+            OpenDat dat = ControlDat.GetDat(currentDat);
+            string treeFolder = GetCurrentTreeFolder();
+
+            foreach (var file in list)
+            {
+                if (rootFolder != null) {
+                    string folder = file.Substring(rootFolder.Length);
+                    int i = folder.LastIndexOf('\\');
+                    folder = folder.Remove(i);
+
+                    if (folder.Length > 0) {
+                        if (treeFolder.Length > 0) {
+                            if (folder[0] != '\\') folder = folder.Insert(0, "\\");
+                        } else {
+                            if (folder[0] == '\\') folder = folder.Substring(1);
+                        }
+                    }
+                    dat.AddVirtualFile(file, treeFolder + folder);
+                } else {
+                    dat.AddVirtualFile(file, treeFolder);
+                }
+            }
+
+            // обновление списка
+            if (rootFolder != null) ReBuildTreeNode(dat);
+            FindFiles(currentDat, treeFolder + "\\");
+
+            SaveToolStripButton.Enabled = true;
+        }
+
+        private void ReBuildTreeNode(OpenDat dat)
+        {
+            List<TreeNode> expandNodes = new List<TreeNode>();
+            Misc.GetExpandNodes(currentNode, ref expandNodes);
+
+            folderTreeView.BeginUpdate();
+            currentNode.Nodes.Clear();
+
+            if (currentNode.Parent == null) {
+
+                foreach (var item in dat.Folders)
+                {
+                    if (item.Key.Length > 0) {
+                        string[] dirs = item.Key.Split(new char[] { '\\' }, StringSplitOptions.RemoveEmptyEntries);
+
+                        TreeNode tn = currentNode;
+                        string parentsDir = String.Empty;
+
+                        foreach (var dir in dirs)
+                        {
+                            parentsDir += dir;
+                            TreeNode find = Misc.FindNode(dir, tn);
+                            if (find == null) {
+                                tn = tn.Nodes.Add(dir); // имя папки
+                                tn.Name = parentsDir;   // путь к папке (не должен содержать знаки разделители пути в конце и в начале)
+                            } else
+                                tn = find;
+
+                            parentsDir += "\\";
+                        }
+                    }
+                }
+            } else {
+                foreach (var item in dat.Folders)
+                {
+                    if (item.Key.Length > currentNode.Name.Length && item.Key.StartsWith(currentNode.Name)) {
+                        string[] dirs = item.Key.Split('\\');
+
+                        TreeNode tn = currentNode;
+                        string parentsDir = dirs[0] + "\\";
+
+                        for (int i = 1; i < dirs.Length; i++)
+                        {
+                            parentsDir += dirs[i];
+
+                            if (tn.Text != dirs[i]) {
+                                TreeNode find = Misc.FindNode(dirs[i], tn);
+                                if (find == null) {
+                                    tn = tn.Nodes.Add(dirs[i]); // имя папки
+                                    tn.Name = parentsDir;       // путь к папке (не должен содержать знаки разделители пути в конце и в начале)
+                                } else
+                                    tn = find;
+                            }
+                            parentsDir += "\\";
+                        }
+                    }
+                }
+            }
+            foreach (TreeNode node in expandNodes) Misc.ExpandNode(node, currentNode);
+
+            currentNode.Expand();
+            folderTreeView.EndUpdate();
+        }
+
         private void BuildTree(OpenDat dat)
         {
             folderTreeView.BeginUpdate();
@@ -172,14 +296,14 @@ namespace DATExplorer
                 if (item.Key.Length > 0) {
                     string[] dirs = item.Key.Split('\\');
                     TreeNode tn = root;
-                    string parentsDir = String.Empty;;
+                    string parentsDir = String.Empty;
                     foreach (var dir in dirs)
                     {
                         parentsDir += dir;
                         TreeNode find = Misc.FindNode(dir, tn);
                         if (find == null) {
-                            tn = tn.Nodes.Add(dir);
-                            tn.Name = parentsDir;
+                            tn = tn.Nodes.Add(dir); // имя папки
+                            tn.Name = parentsDir;   // путь к папке (не должен содержать знаки разделители пути в конце и в начале)
                         } else
                             tn = find;
 
@@ -189,6 +313,17 @@ namespace DATExplorer
             }
             root.Expand();
             folderTreeView.EndUpdate();
+        }
+
+        private void FindFiles(string datPath, TreeNode node)
+        {
+            string path = Misc.GetNodeFullPath(node);
+            if (path.Length > datPath.Length)
+                path = path.Remove(0, datPath.Length + 1) + '\\';
+            else
+                path = string.Empty;
+
+            FindFiles(datPath, path);
         }
 
         private void FindFiles(string datPath, string path)
@@ -265,7 +400,6 @@ namespace DATExplorer
 
         private void folderTreeView_AfterSelect(object sender, TreeViewEventArgs e)
         {
-            //if (e.Action == TreeViewAction.Unknown) return;
             SelectTreeNode(e.Node);
         }
 
@@ -283,13 +417,7 @@ namespace DATExplorer
                 SaveToolStripButton.ToolTipText = "Save: " + datPath;
             }
             currentDat = datPath;
-            string path = Misc.GetNodeFullPath(node);
-            if (path.Length > datPath.Length)
-                path = path.Remove(0, datPath.Length + 1) + '\\';
-            else
-                path = string.Empty;
-
-            FindFiles(datPath, path);
+            FindFiles(datPath, node);
 
             extractFolderToolStripMenuItem.Enabled = true;
             closeToolStripButton.Enabled = true;
@@ -314,8 +442,9 @@ namespace DATExplorer
                 listToolStripMenuItem.Checked = false;
                 detailsToolStripMenuItem.Checked = true;
 
-                if (folderTreeView.SelectedNode != null)
-                    FindFiles(currentDat, folderTreeView.SelectedNode.Name + "\\");
+                if (folderTreeView.SelectedNode != null) {
+                    FindFiles(currentDat, folderTreeView.SelectedNode);
+                }
                 break;
             }
         }
@@ -374,10 +503,16 @@ namespace DATExplorer
         {
             var item = filesListView.SelectedItems[0];
             if (item.Tag != null) { // open file
-                if (((sFile)item.Tag).isVirtual) return;
+                sFile sfile = (sFile)item.Tag;
+                if (sfile.isVirtual) return;
 
-                var file = new string[1] { ((sFile)item.Tag).path };
-                new WaitForm(this).UnpackFile(Application.StartupPath + "\\tmp\\", file, currentDat);
+                var file = new string[1] { sfile.path };
+
+                if (sfile.file.info.Size > 1048576) { // 1mb
+                    new WaitForm(this).UnpackFile(Application.StartupPath + "\\tmp\\", file, currentDat);
+                } else {
+                    DATManage.ExtractFile(Application.StartupPath + "\\tmp\\", sfile.path, currentDat);
+                }
 
                 string ofile = Application.StartupPath + "\\tmp\\" + file[0];
                 if (File.Exists(ofile)) System.Diagnostics.Process.Start("explorer", ofile);
@@ -447,9 +582,7 @@ namespace DATExplorer
 
         #region Drag list items
 
-        bool dragToExternal = false;
         bool dragListActive = false;
-        Point dragPointDown = Point.Empty;
 
         void DropHandler(FileWatcher.DropEventArgs e)
         {
@@ -467,82 +600,59 @@ namespace DATExplorer
 
         }
 
-        private void filesListView_MouseDown(object sender, MouseEventArgs e)
+        // Drop from List
+        private void filesListView_ItemDrag(object sender, ItemDragEventArgs e)
         {
             if (e.Button == MouseButtons.Left) {
-                dragListActive = true;
-                dragPointDown = e.Location;
-            }
-        }
 
-        // Drop from List
-        private void filesListView_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (!dragToExternal && dragListActive) {
-                Size size = SystemInformation.DragSize;
-                size.Height /= 2;
-                size.Width  /= 2;
-                if (e.Location.X > dragPointDown.X + size.Width  ||
-                    e.Location.X < dragPointDown.X - size.Width  ||
-                    e.Location.Y > dragPointDown.Y + size.Height ||
-                    e.Location.Y < dragPointDown.Y - size.Height)
+                List<String> dropSelected = new List<String>();
+                foreach (ListViewItem item in filesListView.SelectedItems)
                 {
-                    dragToExternal = true;
-                    dropExtractPath = string.Empty;
-
-                    List<String> dropSelected = new List<String>();
-                    foreach (ListViewItem item in filesListView.SelectedItems)
-                    {
-                        if (item.Tag != null) {
-                            dropSelected.Add(((sFile)item.Tag).path);
-                        } else { // for selected folder
-                            GetFolderFiles(dropSelected, item.Name);
-                        }
+                    if (item.Tag != null) {
+                        dropSelected.Add(((sFile)item.Tag).path);
+                    } else { // for selected folder
+                        GetFolderFiles(dropSelected, item.Name);
                     }
-
-                    String[] dummyDropFile = new String[] { String.Empty };
-                    dragDropFileWatcher.StartWatcher(ref dummyDropFile[0]);
-
-                    IDataObject obj = new DataObject(DataFormats.FileDrop, dummyDropFile);
-                    DragDropEffects result = filesListView.DoDragDrop(obj, DragDropEffects.Copy);
-
-                    if (dragToExternal) dragDropFileWatcher.StopWatcher();
-                    dragListActive = dragToExternal = false;
-
-                    if (dropExtractPath == string.Empty) return;
-
-                    string fullPath = folderTreeView.SelectedNode.Name;
-                    string dir = folderTreeView.SelectedNode.Text;
-                    int cut = fullPath.LastIndexOf(dir + "\\");
-                    if (cut != -1) cut += dir.Length;
-
-                    ExtractFiles(dropSelected.ToArray(), dropExtractPath, ((cut > 0) ? fullPath.Remove(cut) : fullPath));
                 }
-            }
-        }
 
-        private void filesListView_MouseUp(object sender, MouseEventArgs e)
-        {
-            //if (dragToExternal) dragDropFileWatcher.StopWatcher();
-            //dragAllow = dragToExternal = false;
+                dragListActive = true;
+                dropExtractPath = string.Empty;
+
+                String[] dummyDropFile = new String[] { String.Empty };
+                dragDropFileWatcher.StartWatcher(ref dummyDropFile[0]);
+
+                IDataObject obj = new DataObject(DataFormats.FileDrop, dummyDropFile);
+                DragDropEffects result = filesListView.DoDragDrop(obj, DragDropEffects.Copy);
+
+                if (dragDropFileWatcher.IsRunning) dragDropFileWatcher.StopWatcher();
+                dragListActive = false;
+
+                if (dropExtractPath == string.Empty) return;
+
+                string fullPath = (folderTreeView.SelectedNode.Parent != null) ? folderTreeView.SelectedNode.Name : String.Empty;
+
+                ExtractFiles(dropSelected.ToArray(), dropExtractPath, fullPath);
+            }
         }
 
         // Drop to List
-        List<string> addFilesToDat;
-
         private void filesListView_DragDrop(object sender, DragEventArgs e)
         {
-            if (dragToExternal) return;
+            if (dragListActive) return;
 
-            addFilesToDat = new List<string>();
+            string rootFolder = null;
+            List<string> addFilesToDat = new List<string>();
 
             foreach (string file in (string[])e.Data.GetData(DataFormats.FileDrop))
             {
-                if (Directory.Exists(file))
+                if (Directory.Exists(file)) {
+                    if (rootFolder == null) rootFolder = Path.GetDirectoryName(file);
                     addFilesToDat.AddRange(Directory.GetFiles(file, "*.*", SearchOption.AllDirectories));
-                else
+                } else {
                     addFilesToDat.Add(file);
+                }
             }
+            ImportFilesWithFolders(addFilesToDat.ToArray(), rootFolder);
         }
 
         private void filesListView_DragEnter(object sender, DragEventArgs e)
@@ -573,24 +683,33 @@ namespace DATExplorer
 
         private void importFilesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (importFilesDialog.ShowDialog() == System.Windows.Forms.DialogResult.Cancel) return;
+            if (importFilesDialog.ShowDialog() == DialogResult.OK) ImportFiles(importFilesDialog.FileNames);
+        }
 
-            OpenDat dat = ControlDat.GetDat(currentDat);
-            string treeFolder = GetCurrentTreeFolder();
-            foreach (var file in importFilesDialog.FileNames)
-            {
-                dat.AddVirtualFile(file, treeFolder);
-            }
-            SaveToolStripButton.Enabled = true;
-            // обновление списка
-            FindFiles(currentDat, treeFolder + "\\");
+        private void importFoldersToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (folderBrowserDialog.ShowDialog() != DialogResult.OK) return;
+            ImportFilesWithFolders(Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.*", SearchOption.AllDirectories), folderBrowserDialog.SelectedPath);
         }
 
         bool createFolder = false;
 
         private void createFolderToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            TreeNode addNode = new TreeNode("New Folder");
+            int num = 0;
+exist:
+            TreeNode addNode = new TreeNode((num == 0) ? "NewFolder" : "NewFolder" + num.ToString());
+
+            string fullPath = Misc.GetNodeFullPath(currentNode);
+            if (fullPath.Length > currentDat.Length) addNode.Name = fullPath.Substring(currentDat.Length + 1) + "\\";
+            addNode.Name += addNode.Text;
+
+            OpenDat dat = ControlDat.GetDat(currentDat);
+            if (dat.FolderExist(addNode.Name)) {
+                num++;
+                addNode = null;
+                goto exist;
+            }
 
             currentNode.Nodes.Add(addNode);
 
@@ -639,8 +758,9 @@ namespace DATExplorer
                 IDataObject obj = new DataObject(DataFormats.FileDrop, dummyDropFile);
                 DragDropEffects result = folderTreeView.DoDragDrop(obj, DragDropEffects.Copy);
 
-                dragDropFileWatcher.StopWatcher();
+                if (dragDropFileWatcher.IsRunning) dragDropFileWatcher.StopWatcher();
                 treeDragActive = false;
+
                 if (dropExtractPath == string.Empty) return;
 
                 ExtractFolder(((TreeNode)e.Item).Name, dropExtractPath, ((TreeNode)e.Item).Text);
@@ -662,7 +782,6 @@ namespace DATExplorer
         private void upToolStripButton_Click(object sender, EventArgs e)
         {
             folderTreeView.SelectedNode = currentNode.Parent;
-            //SelectTreeNode(currentNode.Parent);
         }
 
         private void renameFolderToolStripMenuItem_Click(object sender, EventArgs e)
@@ -675,34 +794,51 @@ namespace DATExplorer
         {
             folderTreeView.LabelEdit = false;
 
+            OpenDat dat = ControlDat.GetDat(currentDat);
+
+            if (createFolder) {
+                dat.AddEmptyFolder(e.Node.Name);
+                createFolder = false;
+            }
+
             if (e.Label == null) return;
             if (e.Label.Equals(e.Node.Text, StringComparison.OrdinalIgnoreCase)) {
                 e.CancelEdit = true;
                 return;
             }
-            OpenDat dat = ControlDat.GetDat(currentDat);
+
+            int i = e.Node.Name.LastIndexOf(e.Node.Text);
+            string newFolderPath = e.Node.Name.Remove(i) + e.Label;
+            if (dat.FolderExist(newFolderPath)) {
+                e.CancelEdit = true;
+                MessageBox.Show("Директория с таким именеи уже существует.", "Dat Explorer II", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
 
             string fullPath = Misc.GetNodeFullPath(e.Node);
             dat.RenameFolder(fullPath.Substring(currentDat.Length + 1), fullPath, e.Label);
 
+            e.Node.Name = newFolderPath;
+
             SaveToolStripButton.Enabled = dat.ShouldSave();
+            dirToolStripStatusLabel.Text = "Directory: " + e.Node.Name + '\\';
         }
 
         private void SaveToolStripButton_Click(object sender, EventArgs e)
         {
             OpenDat dat = ControlDat.GetDat(currentDat);
 
-            string message = "Сохранить изменения в Dat файл?";
-            if (!dat.IsFO2Type()) message += "\n\nПримечание: Данная версия программы не поддерживает сжатие добавленных файлов для формата Fallout 1.";
+            string message = "Сохранить изменения в DAT файл?";
+            if (!dat.IsFO2Type()) message += "\n\nПримечание: Данная версия программы не поддерживает сжатие добавленных файлов для DAT формата Fallout 1.";
 
             if (MessageBox.Show(message, "Dat Explorer II", MessageBoxButtons.YesNo) == DialogResult.No) return;
 
             statusToolStripStatusLabel.Text = "Saving:";
             textToolStripStatusLabel.Text = "Prepare...";
-            toolStripProgressBar.Maximum = dat.TotalFiles;
+            toolStripProgressBar.Maximum = dat.TotalFiles / 5;
 
             if (dat.SaveDat()) {
-               FindFiles(currentDat, folderTreeView.SelectedNode.Name + "\\");
+               FindFiles(currentDat, folderTreeView.SelectedNode);
             }
 
             SaveToolStripButton.Enabled = false;
@@ -735,7 +871,7 @@ namespace DATExplorer
 
             if (isList) {
                 new WaitForm(this).RemoveFile(filesListView.SelectedItems);
-                FindFiles(currentDat, currentNode.Name + "\\");
+                FindFiles(currentDat, currentNode);
             } else {
                 new WaitForm(this).RemoveFile(currentNode.Name);
                 folderTreeView.Nodes.Remove(currentNode);
@@ -743,8 +879,10 @@ namespace DATExplorer
 
             textToolStripStatusLabel.Text = toolStripProgressBar.Value + " file(s)";
             toolStripProgressBar.Value = 0;
+
             var dat = ControlDat.GetDat(currentDat);
             totalToolStripStatusLabel.Text = dat.TotalFiles.ToString();
+
             if (dat.ShouldSave()) SaveToolStripButton.Enabled = true;
         }
 
@@ -753,9 +891,13 @@ namespace DATExplorer
             List<String> listFiles = new List<String>();
             GetFolderFiles(listFiles, path);
 
+            OpenDat dat = ControlDat.GetDat(currentDat);
+
             if (listFiles.Count > 0) {
                 toolStripProgressBar.Maximum = listFiles.Count;
-                ControlDat.GetDat(currentDat).DeleteFile(listFiles, true);
+                dat.DeleteFile(listFiles, true);
+            } else {
+                dat.RemoveEmptyFolder(path);
             }
         }
 
@@ -776,12 +918,6 @@ namespace DATExplorer
                 toolStripProgressBar.Maximum = listFiles.Count;
                 ControlDat.GetDat(currentDat).DeleteFile(listFiles, false);
             }
-        }
-
-        // test
-        private void toolStripButton1_Click(object sender, EventArgs e)
-        {
-            DATManage.SaveDAT(currentDat);
         }
     }
 }

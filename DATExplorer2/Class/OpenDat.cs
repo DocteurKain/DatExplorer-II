@@ -54,6 +54,7 @@ namespace DATExplorer
         private string datFile;
         private DAT dat;
 
+        // key - folder
         private SortedDictionary<String, TreeFiles> treeFiles; //
 
         private SaveType shouldSave = SaveType.None; // указывает, что данные изменились и требуется сохранение
@@ -124,6 +125,24 @@ namespace DATExplorer
             }
         }
 
+        internal bool FolderExist(string folderPath)
+        {
+            foreach (var item in treeFiles.Keys)
+            {
+                if (item.StartsWith(folderPath, StringComparison.OrdinalIgnoreCase)) return true;
+            }
+            return false;
+        }
+
+        internal void AddEmptyFolder(string folderPath)
+        {
+            if (!treeFiles.ContainsKey(folderPath)) {
+                treeFiles.Add(folderPath, new TreeFiles(folderPath + '\\'));
+            } else {
+
+            }
+        }
+
         internal void AddVirtualFile(string pathFile, string treeFolderPath)
         {
             //TODO: не добавляем дубликаты
@@ -135,7 +154,7 @@ namespace DATExplorer
             fileDat.name = file.Name;
             fileDat.info.Size = (int)file.Length;
             fileDat.info.PackedSize = -1;
-            fileDat.pathTree = treeFolderPath + '\\';
+            fileDat.pathTree = (!String.IsNullOrEmpty(treeFolderPath)) ? treeFolderPath + '\\' : String.Empty;
 
             dat.AddFile(pathFile, fileDat);
 
@@ -184,34 +203,39 @@ namespace DATExplorer
         {
             // удаление файлов из дерева (остаются только пустые папки если в них нет файлов)
             string folder = null;
-            TreeFiles values = null;
+            TreeFiles files = null;
 
             List<string> folders = new List<string>();
             for (int i = 0; i < pathFileList.Count; i++)
             {
                 string file = pathFileList[i];
                 if (folder == null) {
-                    folder = file.Remove(file.LastIndexOf('\\'));
-                    values = treeFiles[folder];
+                    folder = Path.GetDirectoryName(file);
+                    files = treeFiles[folder];
                     folders.Add(folder);
                 }
 
-                string f = file.Remove(file.LastIndexOf('\\'));
+                string f = Path.GetDirectoryName(file);
                 if (f != folder) {
                     folder = f;
-                    values = treeFiles[folder];
+                    files = treeFiles[folder];
                     folders.Add(folder);
                 }
-                values.RemoveFile(file);
+                files.RemoveFile(file);
             }
             if (alsoFolder) {
-                foreach (var f in folders) if (treeFiles[f].GetFiles().Count == 0) treeFiles.Remove(f);
+                foreach (var f in folders) RemoveEmptyFolder(f);
             }
 
             TotalFiles -= pathFileList.Count;
 
             // удаление файлов из Dat
-            if (dat.RemoveFile(pathFileList)) shouldSave = SaveType.New;
+            if (dat.RemoveFiles(pathFileList)) shouldSave = SaveType.New;
+        }
+
+        internal void RemoveEmptyFolder(string folder)
+        {
+            if (treeFiles[folder].GetFiles().Count == 0) treeFiles.Remove(folder);
         }
 
         internal bool SaveDat()

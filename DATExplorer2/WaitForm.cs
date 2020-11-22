@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Windows.Forms;
+using System.ComponentModel;
+
 using DATLib;
 
 namespace DATExplorer
 {
     public partial class WaitForm : Form
     {
+        public BackgroundWorker bwork;
+
         private string cutPath;
         private string unpackPath;
         private string nameDat;
@@ -86,13 +90,51 @@ namespace DATExplorer
                 case WorkState.ExtractSingle:
                     Extraction();
                     break;
+
                 case WorkState.Delete:
-                    Remove();
+                    Removing();
                     break;
+
                 case WorkState.Save:
+                case WorkState.SaveAppend:
                     Saving();
                     break;
             }
+        }
+
+        private void WorkerRun()
+        {
+            bwork = new BackgroundWorker();
+            bwork.RunWorkerCompleted += bwork_RunWorkerCompleted;
+            bwork.DoWork += bwork_DoWork;
+            bwork.RunWorkerAsync();
+        }
+
+        private void bwork_DoWork(object sender, DoWorkEventArgs e)
+        {
+            switch (this.state)
+            {
+                case WorkState.Extract:
+                    if (listFiles != null) {
+                        if (cutPath != string.Empty)
+                            DATManage.ExtractFileList(unpackPath, listFiles, nameDat, cutPath);
+                        else
+                            DATManage.ExtractFileList(unpackPath, listFiles, nameDat);
+                    } else {
+                        DATManage.ExtractAllFiles(unpackPath, nameDat);
+                    }
+                    break;
+                case WorkState.Save:
+                    DATManage.SaveDAT(nameDat);
+                    break;
+                case WorkState.SaveAppend:
+                    DATManage.AppendFilesDAT(nameDat);
+                    break;
+            }
+        }
+
+        private void bwork_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
             this.Dispose();
         }
 
@@ -104,19 +146,17 @@ namespace DATExplorer
                 label1.Text = "Please wait extraction of files...";
 
             if (this.state == WorkState.ExtractSingle) {
+                Application.DoEvents();
+
                 DATManage.ExtractFile(unpackPath, listFiles[0], nameDat);
-            }
-            else if (listFiles != null) {
-                if (cutPath != string.Empty)
-                    DATManage.ExtractFileList(unpackPath, listFiles, nameDat, cutPath);
-                else
-                    DATManage.ExtractFileList(unpackPath, listFiles, nameDat);
+
+                this.Dispose();
             } else {
-                DATManage.ExtractAllFiles(unpackPath, nameDat);
+                WorkerRun();
             }
         }
 
-        private void Remove()
+        private void Removing()
         {
             if (System.Globalization.CultureInfo.CurrentCulture.Name == "ru-RU")
                 label1.Text = "Подождите идет удаление файлов...";
@@ -129,6 +169,8 @@ namespace DATExplorer
                 ownerFrm.DeleteFiles(listFiles[0]);
             else
                 ownerFrm.DeleteFiles(list);
+
+            this.Dispose();
         }
 
         private void Saving()
@@ -138,12 +180,7 @@ namespace DATExplorer
             else
                 label1.Text = "Wait for the files to be deleted...";
 
-            Application.DoEvents();
-
-            if (this.state == WorkState.Save)
-                DATManage.SaveDAT(nameDat);
-            else
-                DATManage.AppendFilesDAT(nameDat);
+            WorkerRun();
         }
     }
 }
