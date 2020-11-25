@@ -24,14 +24,14 @@ namespace DATExplorer
             return dat;
         }
 
-        static internal OpenDat GetDat(string dat)
+        static internal OpenDat GetDat(string datName)
         {
-            return openDat.Find(x => x.DatName == dat);
+            return openDat.Find(x => x.DatName.Equals(datName, StringComparison.OrdinalIgnoreCase));
         }
 
-        static internal bool DatIsOpen(string dat)
+        static internal bool DatIsOpen(string datName)
         {
-            return openDat.Exists(x => x.DatName == dat);
+            return openDat.Exists(x => x.DatName.Equals(datName, StringComparison.OrdinalIgnoreCase));
         }
 
         static internal void CloseDat(string datName)
@@ -54,8 +54,8 @@ namespace DATExplorer
         private string datFile;
         private DAT dat;
 
-        // key - folder
-        private SortedDictionary<String, TreeFiles> treeFiles; //
+        // key - путь к папке в нижнем регистре (без разделеителя в начале)
+        private SortedDictionary<String, TreeFiles> treeFiles;
 
         private SaveType shouldSave = SaveType.None; // указывает, что данные изменились и требуется сохранение
 
@@ -87,9 +87,9 @@ namespace DATExplorer
         {
             foreach (var item in files)
             {
-                string pathfile = Path.GetDirectoryName(item.Key); // удалить имя
+                string pathfile = item.Value.pathTree.ToLowerInvariant();
                 if (!treeFiles.ContainsKey(pathfile)) {
-                    treeFiles.Add(pathfile, new TreeFiles(pathfile + '\\'));
+                    treeFiles.Add(pathfile, new TreeFiles(item.Value.pathTree));
                 }
                 treeFiles[pathfile].AddFile(item);
             }
@@ -115,7 +115,9 @@ namespace DATExplorer
             foreach (var folder in Folders.Keys)
             {
                 if (includeSubDirs) {
-                    if (!folder.StartsWith(folderName)) continue;
+                    if (!folder.StartsWith(folderName)) {
+                         continue;
+                    }
                 } else if (folder != folderName) continue;
 
                 foreach (var file in Folders[folder].GetFiles())
@@ -125,30 +127,44 @@ namespace DATExplorer
             }
         }
 
-        internal bool FolderExist(string folderPath)
+        internal bool FolderExist(string folderPath, bool ignoreCase = true)
         {
-            foreach (var item in treeFiles.Keys)
+            int len = folderPath.Length;
+            if (ignoreCase) folderPath = folderPath.ToLowerInvariant();
+
+            foreach (var folder in treeFiles.Keys)
             {
-                if (item.StartsWith(folderPath, StringComparison.OrdinalIgnoreCase)) return true;
+                if (folder.StartsWith(folderPath)) {
+                    return true;
+                }
             }
             return false;
         }
 
-        internal void AddEmptyFolder(string folderPath)
+        /// <summary>
+        /// Создает пустую дерикторию
+        /// </summary>
+        /// <param name="folderPath">Путь и имя дериктории</param>
+        internal void AddEmptyFolder(string folderNamePath)
         {
-            if (!treeFiles.ContainsKey(folderPath)) {
-                treeFiles.Add(folderPath, new TreeFiles(folderPath + '\\'));
+            string dirPath = folderNamePath.ToLowerInvariant();
+            if (!treeFiles.ContainsKey(dirPath)) {
+                treeFiles.Add(dirPath, new TreeFiles(folderNamePath));
             } else {
-
+                // error add
             }
         }
 
-        internal void AddVirtualFile(string pathFile, string treeFolderPath)
+        internal void AddVirtualFile(string realPathFile, string treeFolderPath)
         {
-            //TODO: не добавляем дубликаты
-            //if (!addedFiles.ContainsKey(fileDat)) addedFiles.Add(fileDat, pathFile);
+            string folderPath = treeFolderPath.ToLowerInvariant();
 
-            System.IO.FileInfo file = new System.IO.FileInfo(pathFile);
+            bool folderExist = treeFiles.ContainsKey(folderPath);
+            if (folderExist && treeFiles[folderPath].FileExist(Path.GetFileName(realPathFile))) {
+                return; // не добавляем дубликаты
+            }
+
+            System.IO.FileInfo file = new System.IO.FileInfo(realPathFile);
 
             DATLib.FileInfo fileDat = new DATLib.FileInfo();
             fileDat.name = file.Name;
@@ -156,47 +172,70 @@ namespace DATExplorer
             fileDat.info.PackedSize = -1;
             fileDat.pathTree = (!String.IsNullOrEmpty(treeFolderPath)) ? treeFolderPath + '\\' : String.Empty;
 
-            dat.AddFile(pathFile, fileDat);
+            dat.AddFile(realPathFile, fileDat);
 
-            if (!treeFiles.ContainsKey(treeFolderPath)) {
-                treeFiles.Add(treeFolderPath, new TreeFiles(fileDat.pathTree));
+            if (!folderExist) {
+                treeFiles.Add(folderPath, new TreeFiles(treeFolderPath));
             }
-            treeFiles[treeFolderPath].AddFile(new KeyValuePair<string, DATLib.FileInfo>(fileDat.pathTree + fileDat.name, fileDat));
+            treeFiles[folderPath].AddFile(new KeyValuePair<string, DATLib.FileInfo>((fileDat.pathTree + fileDat.name).ToLowerInvariant(), fileDat));
 
             TotalFiles++;
             if (shouldSave != SaveType.New) shouldSave = SaveType.Append;
         }
 
-        internal void RenameFolder(string pathFolder, string fullFolderPath, string newNameFolder)
+        internal void RenameFile(string pathFile, string newName)
         {
-            string newPath = pathFolder.Remove(pathFolder.LastIndexOf('\\') + 1) + newNameFolder;
+            int i = pathFile.LastIndexOf('\\') + 1;
+            string folderFile = pathFile.Remove(i);
+
+            foreach (var folder in treeFiles.Keys)
+            {
+                if (folderFile == folder) {
+                    treeFiles[folder].RenameFile(pathFile, newName);
+                    break;
+                }
+            }
+            dat.RenameFile(pathFile, newName);
+            if (shouldSave == SaveType.None) shouldSave = SaveType.DirTree;
+        }
+
+        internal string RenameFolder(string pathFolder, string newNameFolder)
+        {
+            int pLen = pathFolder.Length;
+            int sLen = pLen - 1;
+            int last = pathFolder.LastIndexOf('\\', sLen - 1) + 1;
+
+            string newPath = pathFolder.Remove(last) + newNameFolder.ToLowerInvariant() + '\\';
 
             List<string> removeKeys = new List<string>();
             SortedDictionary<String, TreeFiles> addFiles = new SortedDictionary<string,TreeFiles>();
 
             foreach (var item in treeFiles.Keys)
             {
-                int i = item.LastIndexOf(pathFolder);
-                if (i != -1) {
-                    string newPathKey = newPath + item.Substring(pathFolder.Length);
+                if (item.StartsWith(pathFolder)) {
+                    string newPathKey = newPath + item.Substring(pLen);
 
-                    TreeFiles tFiles = new TreeFiles(newPathKey + '\\');
+                    string folder = treeFiles[item].FolderPath;
+                    string pre = folder.Remove(last) + newNameFolder;
+                    TreeFiles tFiles = new TreeFiles(pre + folder.Substring(sLen));
+
                     foreach (var file in treeFiles[item].GetFiles())
                     {
-                        tFiles.AddFile(new KeyValuePair<string, DATLib.FileInfo>(tFiles.FolderName + file.file.name, file.file));
+                        tFiles.AddFile(new sFile(file, tFiles.FolderPath));
                     }
                     removeKeys.Add(item);
                     addFiles.Add(newPathKey, tFiles);
                 }
             }
-            if (addFiles.Count == 0) return; // внесение изменений в дат не требуется
+            if (addFiles.Count == 0) return null; // внесение изменений в дат не требуется
 
             foreach (var item in removeKeys) treeFiles.Remove(item);
             foreach (var pair in addFiles) treeFiles.Add(pair.Key, pair.Value);
 
-            DATManage.RenameFolder(DatName, pathFolder, newPath);
+            DATManage.RenameFolder(DatName, pathFolder, newNameFolder);
 
             if (shouldSave == SaveType.None) shouldSave = SaveType.DirTree;
+            return newPath;
         }
 
         internal void DeleteFile(List<string> pathFileList, bool alsoFolder)

@@ -140,7 +140,7 @@ namespace DATExplorer
 
         private void Extraction()
         {
-            if (System.Globalization.CultureInfo.CurrentCulture.Name == "ru-RU")
+            if (ExplorerForm.LocaleRU)
                 label1.Text = "Подождите идет извлечение файлов...";
             else
                 label1.Text = "Please wait extraction of files...";
@@ -158,7 +158,7 @@ namespace DATExplorer
 
         private void Removing()
         {
-            if (System.Globalization.CultureInfo.CurrentCulture.Name == "ru-RU")
+            if (ExplorerForm.LocaleRU)
                 label1.Text = "Подождите идет удаление файлов...";
             else
                 label1.Text = "Wait for the files to be deleted...";
@@ -175,7 +175,7 @@ namespace DATExplorer
 
         private void Saving()
         {
-            if (System.Globalization.CultureInfo.CurrentCulture.Name == "ru-RU")
+            if (ExplorerForm.LocaleRU)
                 label1.Text = "Подождите идет сохранение Dat файла...";
             else
                 label1.Text = "Wait for the files to be deleted...";

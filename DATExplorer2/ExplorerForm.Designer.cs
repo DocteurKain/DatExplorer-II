@@ -35,6 +35,8 @@
             this.renameFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
             this.deleteFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator11 = new System.Windows.Forms.ToolStripSeparator();
+            this.closeDATToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.treeImageList = new System.Windows.Forms.ImageList(this.components);
             this.filesListView = new System.Windows.Forms.ListView();
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -135,9 +137,11 @@
             this.createFolderToolStripMenuItem,
             this.renameFolderToolStripMenuItem,
             this.toolStripSeparator5,
-            this.deleteFolderToolStripMenuItem});
+            this.deleteFolderToolStripMenuItem,
+            this.toolStripSeparator11,
+            this.closeDATToolStripMenuItem});
             this.cmsFolderTree.Name = "cmsFolderTree";
-            this.cmsFolderTree.Size = new System.Drawing.Size(184, 148);
+            this.cmsFolderTree.Size = new System.Drawing.Size(184, 176);
             this.cmsFolderTree.Opening += new System.ComponentModel.CancelEventHandler(this.cmsFolderTree_Opening);
             // 
             // extractAllFilesToolStripMenuItem
@@ -197,6 +201,18 @@
             this.deleteFolderToolStripMenuItem.Text = "Delete folder";
             this.deleteFolderToolStripMenuItem.Click += new System.EventHandler(this.deleteFolderToolStripMenuItem_Click);
             // 
+            // toolStripSeparator11
+            // 
+            this.toolStripSeparator11.Name = "toolStripSeparator11";
+            this.toolStripSeparator11.Size = new System.Drawing.Size(180, 6);
+            // 
+            // closeDATToolStripMenuItem
+            // 
+            this.closeDATToolStripMenuItem.Name = "closeDATToolStripMenuItem";
+            this.closeDATToolStripMenuItem.Size = new System.Drawing.Size(183, 22);
+            this.closeDATToolStripMenuItem.Text = "Close DAT";
+            this.closeDATToolStripMenuItem.Click += new System.EventHandler(this.closeDATToolStripMenuItem_Click);
+            // 
             // treeImageList
             // 
             this.treeImageList.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("treeImageList.ImageStream")));
@@ -226,13 +242,14 @@
             this.filesListView.TabIndex = 1;
             this.filesListView.UseCompatibleStateImageBehavior = false;
             this.filesListView.View = System.Windows.Forms.View.List;
+            this.filesListView.AfterLabelEdit += new System.Windows.Forms.LabelEditEventHandler(this.filesListView_AfterLabelEdit);
             this.filesListView.ItemDrag += new System.Windows.Forms.ItemDragEventHandler(this.filesListView_ItemDrag);
-            this.filesListView.ItemSelectionChanged += new System.Windows.Forms.ListViewItemSelectionChangedEventHandler(this.filesListView_ItemSelectionChanged);
             this.filesListView.DragDrop += new System.Windows.Forms.DragEventHandler(this.filesListView_DragDrop);
             this.filesListView.DragEnter += new System.Windows.Forms.DragEventHandler(this.filesListView_DragEnter);
             this.filesListView.GiveFeedback += new System.Windows.Forms.GiveFeedbackEventHandler(this.filesListView_GiveFeedback);
             this.filesListView.QueryContinueDrag += new System.Windows.Forms.QueryContinueDragEventHandler(this.filesListView_QueryContinueDrag);
             this.filesListView.DoubleClick += new System.EventHandler(this.filesListView_DoubleClick);
+            this.filesListView.KeyUp += new System.Windows.Forms.KeyEventHandler(this.filesListView_KeyUp);
             // 
             // columnHeader1
             // 
@@ -272,7 +289,7 @@
             this.toolStripSeparator10,
             this.deleteFilesToolStripMenuItem});
             this.listViewContextMenuStrip.Name = "listViewContextMenuStrip";
-            this.listViewContextMenuStrip.Size = new System.Drawing.Size(230, 182);
+            this.listViewContextMenuStrip.Size = new System.Drawing.Size(230, 204);
             this.listViewContextMenuStrip.Opening += new System.ComponentModel.CancelEventHandler(this.listViewContextMenuStrip_Opening);
             // 
             // openToolStripMenuItem
@@ -295,7 +312,8 @@
             this.extractFilesToolStripMenuItem.Name = "extractFilesToolStripMenuItem";
             this.extractFilesToolStripMenuItem.Size = new System.Drawing.Size(229, 22);
             this.extractFilesToolStripMenuItem.Text = "Extract selected file(s) to ...";
-            this.extractFilesToolStripMenuItem.ToolTipText = "Распаковывает выбранные файлы или папки со структурой родительских каталогов.";
+            this.extractFilesToolStripMenuItem.ToolTipText = "Распаковывает выбранные файлы или папки с сохранением структур родительских катал" +
+    "огов.";
             this.extractFilesToolStripMenuItem.Click += new System.EventHandler(this.extractFilesToolStripMenuItem_Click);
             // 
             // toolStripSeparator7
@@ -316,8 +334,8 @@
             this.importFoldersToolStripMenuItem.Name = "importFoldersToolStripMenuItem";
             this.importFoldersToolStripMenuItem.Size = new System.Drawing.Size(229, 22);
             this.importFoldersToolStripMenuItem.Text = "Import folder(s) with files";
-            this.importFoldersToolStripMenuItem.ToolTipText = "Импортирует выбранные каталоги и их файлы включая структуру вложенных папок в тек" +
-    "ущий каталог.";
+            this.importFoldersToolStripMenuItem.ToolTipText = "Импортирует выбранные каталоги и их файлы со структурой вложенных папок в текущий" +
+    " каталог.";
             this.importFoldersToolStripMenuItem.Click += new System.EventHandler(this.importFoldersToolStripMenuItem_Click);
             // 
             // toolStripSeparator8
@@ -330,12 +348,14 @@
             this.createFolderToolStripMenuItem1.Name = "createFolderToolStripMenuItem1";
             this.createFolderToolStripMenuItem1.Size = new System.Drawing.Size(229, 22);
             this.createFolderToolStripMenuItem1.Text = "Add folder";
+            this.createFolderToolStripMenuItem1.Click += new System.EventHandler(this.createFolderToolStripMenuItem1_Click);
             // 
             // renameToolStripMenuItem
             // 
             this.renameToolStripMenuItem.Name = "renameToolStripMenuItem";
             this.renameToolStripMenuItem.Size = new System.Drawing.Size(229, 22);
-            this.renameToolStripMenuItem.Text = "Rename file";
+            this.renameToolStripMenuItem.Text = "Rename file or folder";
+            this.renameToolStripMenuItem.Click += new System.EventHandler(this.renameToolStripMenuItem_Click);
             // 
             // toolStripSeparator10
             // 
@@ -349,6 +369,7 @@
             this.deleteFilesToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.Delete;
             this.deleteFilesToolStripMenuItem.Size = new System.Drawing.Size(229, 22);
             this.deleteFilesToolStripMenuItem.Text = "Delete selected file(s)";
+            this.deleteFilesToolStripMenuItem.ToolTipText = "Удаляет выбранные файлы и все файлы из выбранных папок.";
             this.deleteFilesToolStripMenuItem.Click += new System.EventHandler(this.deleteFilesToolStripMenuItem_Click);
             // 
             // listImageList
@@ -773,6 +794,8 @@
         private System.Windows.Forms.ToolStripMenuItem renameToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator10;
         private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator11;
+        private System.Windows.Forms.ToolStripMenuItem closeDATToolStripMenuItem;
     }
 }
 

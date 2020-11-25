@@ -32,12 +32,12 @@ namespace DATExplorer
             return node;
         }
 
-        // рекурсивный поиск
+        // рекурсивно ищет ноду с указанным отображаемым именем папки
         internal static TreeNode FindNode(string name, TreeNode node)
         {
             foreach (TreeNode nd in node.Nodes)
             {
-                if (nd.Text == name) {
+                if (nd.Text.Equals(name, StringComparison.OrdinalIgnoreCase)) {
                     return nd;
                 }
                 TreeNode find = FindNode(name, nd);
@@ -46,12 +46,26 @@ namespace DATExplorer
             return null;
         }
 
-        internal static void GetExpandNodes(TreeNode nodes, ref List<TreeNode> expandedNodes)
+        // рекурсивно ищет ноду с указанным путем
+        internal static TreeNode FindPathNode(string path, TreeNode fromNode)
+        {
+            foreach (TreeNode node in fromNode.Nodes)
+            {
+                if (node.Name == path) {
+                    return node;
+                }
+                TreeNode find = FindNode(path, node);
+                if (find != null) return find;
+            }
+            return null;
+        }
+
+        internal static void GetExpandedNodes(TreeNode nodes, ref List<TreeNode> expandedNodes)
         {
             foreach (TreeNode node in nodes.Nodes)
             {
                 if (node.IsExpanded) expandedNodes.Add(node);
-                if (node.Nodes.Count > 0) GetExpandNodes(node, ref expandedNodes);
+                if (node.Nodes.Count > 0) GetExpandedNodes(node, ref expandedNodes);
             }
         }
 
