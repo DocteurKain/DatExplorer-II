@@ -61,6 +61,8 @@ namespace DATExplorer
 
         public int TotalFiles { set; get; }
 
+        public int AddedFiles { get { return dat.AddedFiles; } }
+
         public SortedDictionary<String, TreeFiles> Folders { get { return treeFiles; } }
 
         public string DatName { get { return datFile; } }
@@ -170,33 +172,37 @@ namespace DATExplorer
             fileDat.name = file.Name;
             fileDat.info.Size = (int)file.Length;
             fileDat.info.PackedSize = -1;
-            fileDat.pathTree = (!String.IsNullOrEmpty(treeFolderPath)) ? treeFolderPath + '\\' : String.Empty;
+            fileDat.pathTree = treeFolderPath;
 
             dat.AddFile(realPathFile, fileDat);
 
             if (!folderExist) {
                 treeFiles.Add(folderPath, new TreeFiles(treeFolderPath));
             }
-            treeFiles[folderPath].AddFile(new KeyValuePair<string, DATLib.FileInfo>((fileDat.pathTree + fileDat.name).ToLowerInvariant(), fileDat));
+
+            treeFiles[folderPath].AddFile(new KeyValuePair<string, DATLib.FileInfo>(folderPath + fileDat.name.ToLowerInvariant(), fileDat));
 
             TotalFiles++;
+
             if (shouldSave != SaveType.New) shouldSave = SaveType.Append;
         }
 
-        internal void RenameFile(string pathFile, string newName)
+        internal sFile RenameFile(string pathFile, string newName)
         {
+            sFile file = new sFile();
             int i = pathFile.LastIndexOf('\\') + 1;
             string folderFile = pathFile.Remove(i);
 
             foreach (var folder in treeFiles.Keys)
             {
                 if (folderFile == folder) {
-                    treeFiles[folder].RenameFile(pathFile, newName);
+                    file = treeFiles[folder].RenameFile(pathFile, newName);
                     break;
                 }
             }
             dat.RenameFile(pathFile, newName);
             if (shouldSave == SaveType.None) shouldSave = SaveType.DirTree;
+            return file;
         }
 
         internal string RenameFolder(string pathFolder, string newNameFolder)
@@ -248,13 +254,15 @@ namespace DATExplorer
             for (int i = 0; i < pathFileList.Count; i++)
             {
                 string file = pathFileList[i];
+                int n = file.LastIndexOf('\\') + 1;
+
                 if (folder == null) {
-                    folder = Path.GetDirectoryName(file);
+                    folder = file.Remove(n);
                     files = treeFiles[folder];
                     folders.Add(folder);
                 }
 
-                string f = Path.GetDirectoryName(file);
+                string f = file.Remove(n);
                 if (f != folder) {
                     folder = f;
                     files = treeFiles[folder];

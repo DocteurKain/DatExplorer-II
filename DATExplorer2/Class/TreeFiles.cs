@@ -67,7 +67,7 @@ namespace DATExplorer
             }
         }
 
-        public void RenameFile(string filePath, string newName)
+        public sFile RenameFile(string filePath, string newName)
         {
             for (int i = 0; i < m_file.Count; i++)
             {
@@ -77,9 +77,10 @@ namespace DATExplorer
                     file.path = file.path.Remove(n - file.file.name.Length) + newName.ToLowerInvariant();
                     file.file.name = newName;
                     m_file[i] = file;
-                    return;
+                    return file;
                 }
             }
+            return new sFile();
         }
 
         public void UpdateFileInfo(int index, Info info)

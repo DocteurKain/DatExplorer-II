@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 
 using DATExplorer.Properties;
 
 using DATLib;
-using System.IO;
 
 namespace DATExplorer
 {
@@ -24,6 +24,7 @@ namespace DATExplorer
 
         private FileWatcher dragDropFileWatcher;
 
+        private bool skipKeyEvent;
         private string arg;
 
         public static void SetDoubleBuffered(Control cnt)
@@ -178,14 +179,16 @@ namespace DATExplorer
         private void ImportFiles(string[] list)
         {
             OpenDat dat = ControlDat.GetDat(currentDat);
+
             string treeFolder = GetCurrentTreeFolder();
+            if (treeFolder.Length > 0) treeFolder += '\\';
 
             foreach (var file in list)
             {
                 dat.AddVirtualFile(file, treeFolder);
             }
             // обновление списка
-            FindFiles(currentDat, treeFolder + "\\");
+            FindFiles(currentDat, treeFolder);
 
             SaveToolStripButton.Enabled = true;
         }
@@ -199,25 +202,31 @@ namespace DATExplorer
             {
                 if (rootFolder != null) {
                     string folder = file.Substring(rootFolder.Length);
-                    int i = folder.LastIndexOf('\\');
+                    int i = folder.LastIndexOf('\\') + 1;
                     folder = folder.Remove(i);
 
                     if (folder.Length > 0) {
                         if (treeFolder.Length > 0) {
-                            if (folder[0] != '\\') folder = folder.Insert(0, "\\");
+                            //if (folder[0] != '\\')
+                            //    folder = folder.Insert(0, "\\"); // добавить в начало
                         } else {
-                            if (folder[0] == '\\') folder = folder.Substring(1);
+                            if (folder[0] == '\\') folder = folder.Substring(1); // удалить '\' в начале
                         }
                     }
                     dat.AddVirtualFile(file, treeFolder + folder);
                 } else {
-                    dat.AddVirtualFile(file, treeFolder);
+                    if (treeFolder.Length > 0) {
+                        dat.AddVirtualFile(file, treeFolder + '\\');
+                    } else {
+                        dat.AddVirtualFile(file, treeFolder);
+                    }
                 }
             }
 
             // обновление списка
             if (rootFolder != null) ReBuildTreeNode(dat);
-            FindFiles(currentDat, treeFolder + "\\");
+            if (treeFolder.Length > 0) treeFolder += '\\';
+            FindFiles(currentDat, treeFolder);
 
             SaveToolStripButton.Enabled = true;
         }
@@ -231,28 +240,7 @@ namespace DATExplorer
             currentNode.Nodes.Clear();
 
             if (currentNode.Parent == null) {
-                foreach (var item in dat.Folders)
-                {
-                    if (item.Key.Length > 1) {
-                        string[] dirs = item.Key.Split(new char[] { '\\' }, StringSplitOptions.RemoveEmptyEntries);
-
-                        TreeNode tn = currentNode;
-                        string parentsDir = String.Empty;
-
-                        for (int i = 1; i < dirs.Length; i++)
-                        {
-                            parentsDir += dirs[i] + "\\";
-                            TreeNode find = Misc.FindNode(dirs[i], tn);
-                            if (find == null) {
-                                tn = tn.Nodes.Add(item.Value.FolderName(i)); // имя папки
-                                tn.Name = parentsDir; // путь к папке (не должен содержать знаки разделители пути в конце и в начале)
-                            } else
-                                tn = find;
-
-                            //parentsDir += "\\";
-                        }
-                    }
-                }
+                Misc.BuildTreeSub(dat, currentNode);
             } else {
                 foreach (var item in dat.Folders)
                 {
@@ -270,11 +258,10 @@ namespace DATExplorer
                                 TreeNode find = Misc.FindNode(dirs[i], tn);
                                 if (find == null) {
                                     tn = tn.Nodes.Add(item.Value.FolderName(i)); // имя папки
-                                    tn.Name = parentsDir; // путь к папке (не должен содержать знаки разделители пути в конце и в начале)
+                                    tn.Name = parentsDir; // путь к папке (не должен содержать знак разделителя пути в начале)
                                 } else
                                     tn = find;
                             }
-                            //parentsDir += "\\";
                         }
                     }
                 }
@@ -293,27 +280,7 @@ namespace DATExplorer
             root.NodeFont = new Font(folderTreeView.Font, FontStyle.Bold);
             root.SelectedImageIndex = root.ImageIndex = 2;
 
-            foreach (var folder in dat.Folders)
-            {
-                if (folder.Key.Length > 1) {
-                    string[] dirs = folder.Key.Split(new char[] { '\\' }, StringSplitOptions.RemoveEmptyEntries); // in lower case
-
-                    TreeNode tn = root;
-                    string parentsDir = String.Empty;
-                    for (int i = 0; i < dirs.Length; i++)
-                    {
-                        parentsDir += dirs[i] + "\\";
-                        TreeNode find = Misc.FindNode(dirs[i], tn);
-                        if (find == null) {
-                            tn = tn.Nodes.Add(folder.Value.FolderName(i)); // имя папки
-                            tn.Name = parentsDir; // путь к папке (не должен содержать знаки разделители пути в конце и в начале)
-                        } else
-                            tn = find;
-
-                        //parentsDir += "\\";
-                    }
-                }
-            }
+            Misc.BuildTreeSub(dat, root);
             root.Expand();
             folderTreeView.EndUpdate();
         }
@@ -369,7 +336,6 @@ namespace DATExplorer
             int dirCount = filesListView.Items.Count;
 
             // add files
-            if (len == 0) path = "\\"; // for root folder
             if (dat.Folders.ContainsKey(path)) {
                 var datFolders = dat.Folders[path];
                 foreach (sFile el in datFolders.GetFiles())
@@ -547,9 +513,9 @@ namespace DATExplorer
 
         private void filesListView_DoubleClick(object sender, EventArgs e)
         {
-            if (!filesListView.CheckBoxes) {
-                OpenFile();
-            }
+            //if (!filesListView.CheckBoxes) {
+            OpenFile();
+            //}
         }
 
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
@@ -559,6 +525,10 @@ namespace DATExplorer
 
         private void filesListView_KeyUp(object sender, KeyEventArgs e)
         {
+            if (skipKeyEvent) {
+                skipKeyEvent = false;
+                return;
+            }
             if (e.KeyData == Keys.Enter) {
                 OpenFile();
                 if (filesListView.Items.Count > 0) {
@@ -568,11 +538,6 @@ namespace DATExplorer
         }
 
         private void closeDATToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            CloseDat();
-        }
-
-        private void closeToolStripButton_Click(object sender, EventArgs e)
         {
             CloseDat();
         }
@@ -621,16 +586,6 @@ namespace DATExplorer
         {
             dragDropFileWatcher.StopWatcher();
             dropExtractPath = e.PathDrop;
-        }
-
-        private void filesListView_GiveFeedback(object sender, GiveFeedbackEventArgs e)
-        {
-
-        }
-
-        private void filesListView_QueryContinueDrag(object sender, QueryContinueDragEventArgs e)
-        {
-
         }
 
         // Drop from List
@@ -699,19 +654,39 @@ namespace DATExplorer
 
         #region Create DAT / Add files / Remove files
 
-        private void CreateNewToolStripButton_Click(object sender, EventArgs e)
+        private void fallout1ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            CreateNew(DAT.FalloutType.Fallout1);
+        }
+
+        private void fallout2ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            CreateNew(DAT.FalloutType.Fallout2);
+        }
+
+        private void CreateNew(DAT.FalloutType type)
         {
             if (CreateNewDatDialog.ShowDialog() == System.Windows.Forms.DialogResult.Cancel) return;
+
             string newDat = CreateNewDatDialog.FileName;
             if (newDat == string.Empty) return;
+
             if (ControlDat.DatIsOpen(newDat)) {
                 MessageBox.Show("Данный DAT файл уже открыт.");
                 return;
             }
 
+            DATManage.CreateDatFile(newDat, type);
             OpenDat dat = ControlDat.OpeningDat(newDat, true); // empty
+
             BuildTree(dat);
-            totalToolStripStatusLabel.Text = dat.TotalFiles.ToString();
+
+            if (currentNode != null) currentNode.ForeColor = Color.White;
+            TreeNode[] node = folderTreeView.Nodes.Find(dat.DatName, false);
+            SelectTreeNode(node[0]);
+            folderTreeView.SelectedNode = node[0];
+
+            totalToolStripStatusLabel.Text = "0";
         }
 
         private void importFilesToolStripMenuItem_Click(object sender, EventArgs e)
@@ -726,12 +701,12 @@ namespace DATExplorer
         }
 
         bool createFolder = false;
-        string createFolderPath; // путь в
+        string createFolderPath; // путь с сохранением регистра
 
         private void CreateFolder()
         {
             int num = 0;
-exist:
+        exist:
             TreeNode addNode = new TreeNode((num == 0) ? "NewFolder" : "NewFolder" + num.ToString());
 
             string fullPath = Misc.GetNodeFullPath(currentNode);
@@ -766,7 +741,7 @@ exist:
         private void createFolderToolStripMenuItem1_Click(object sender, EventArgs e)
         {
             int num = 0;
-exist:
+        exist:
             string folderName = (num == 0) ? "NewFolder" : "NewFolder" + num.ToString();
 
             foreach (ListViewItem item in filesListView.Items)
@@ -826,7 +801,7 @@ exist:
 
                 if (dropExtractPath == string.Empty) return;
 
-                ExtractFolder(((TreeNode)e.Item).Name, dropExtractPath, ((TreeNode)e.Item).Text.ToLowerInvariant()); // без '/'
+                ExtractFolder(((TreeNode)e.Item).Name, dropExtractPath, ((TreeNode)e.Item).Text.ToLowerInvariant()); // без '/' в конце
             }
         }
 
@@ -902,6 +877,7 @@ exist:
         {
             deleteFilesToolStripMenuItem.Enabled = true;
             filesListView.LabelEdit = false;
+            skipKeyEvent = true;
 
             if (!createFolder && (e.Label == null || e.Label.Equals(filesListView.Items[e.Item].Text))) {
                 e.CancelEdit = true;
@@ -964,7 +940,7 @@ exist:
                     node.Name = renamePath;
                     node.Text = e.Label;
                 } else {
-                    dat.RenameFile(pathTo, e.Label);
+                    filesListView.Items[e.Item].Tag = dat.RenameFile(pathTo, e.Label);
                 }
             }
             SaveToolStripButton.Enabled = dat.ShouldSave();
@@ -981,7 +957,11 @@ exist:
 
             statusToolStripStatusLabel.Text = "Saving:";
             textToolStripStatusLabel.Text = "Prepare...";
-            toolStripProgressBar.Maximum = dat.TotalFiles / 5;
+
+            int count = dat.TotalFiles - dat.AddedFiles;
+            if (count > 1000) count /= 5;
+            count += (dat.AddedFiles > 1000) ? dat.AddedFiles / 5 : dat.AddedFiles;
+            toolStripProgressBar.Maximum = count;
 
             if (dat.SaveDat()) {
                FindFiles(currentDat, folderTreeView.SelectedNode);
@@ -989,6 +969,7 @@ exist:
 
             SaveToolStripButton.Enabled = false;
             toolStripProgressBar.Value = 0;
+            textToolStripStatusLabel.Text = "Done.";
         }
 
         private void ExplorerForm_SizeChanged(object sender, EventArgs e)
