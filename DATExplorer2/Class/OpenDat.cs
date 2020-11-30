@@ -163,6 +163,10 @@ namespace DATExplorer
 
             bool folderExist = treeFiles.ContainsKey(folderPath);
             if (folderExist && treeFiles[folderPath].FileExist(Path.GetFileName(realPathFile))) {
+                System.Windows.Forms.MessageBox.Show(String.Format((ExplorerForm.LocaleRU)
+                                                                    ? "Файл {0}{1} уже существует."
+                                                                    : "File {0}{1} already exist.",
+                                                                    folderPath, Path.GetFileName(realPathFile)));
                 return; // не добавляем дубликаты
             }
 

@@ -5,8 +5,6 @@ using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 
-using DATExplorer.Properties;
-
 using DATLib;
 
 namespace DATExplorer
@@ -40,7 +38,7 @@ namespace DATExplorer
 
             InitializeComponent();
 
-            this.Text += Application.ProductVersion;
+            this.Text += Application.ProductVersion + ".beta - by Mr.Stalin";
 
             SetDoubleBuffered(folderTreeView);
             SetDoubleBuffered(filesListView);
@@ -59,17 +57,17 @@ namespace DATExplorer
         private void ExplorerForm_Shown(object sender, EventArgs e)
         {
             if (arg != null) {
+                Application.DoEvents();
                 OpenDatFile(arg);
-            } else if (Settings.Default.IsAssoc == 0) {
+            } else  if (FileAssociation.GetConfig("Association") != "1") {
                 FileAssociation.Associate();
-                Settings.Default.IsAssoc = 2;
+                FileAssociation.SetConfig("Association", "1");
             }
         }
 
         private void ExplorerForm_FormClosed(object sender, FormClosedEventArgs e)
         {
             dragDropFileWatcher.Dispose();
-            Settings.Default.Save();
         }
 
         private void OpenDatFile(string pathDat)
@@ -96,7 +94,7 @@ namespace DATExplorer
         private void OpenDat(string pathDat)
         {
             if (ControlDat.DatIsOpen(pathDat)) {
-                MessageBox.Show("Этот DAT файл уже открыт!");
+                MessageBox.Show((LocaleRU) ? "Этот DAT файл уже открыт!" : "This DAT file is already open!");
                 return;
             }
             OpenDatFile(pathDat);
@@ -171,6 +169,8 @@ namespace DATExplorer
         {
             List<String> listFiles = new List<String>();
             GetFolderFiles(listFiles, fullPath);
+
+            if (listFiles.Count == 0) return;
 
             int cut = fullPath.LastIndexOf("\\" + folder);
             ExtractFiles(listFiles.ToArray(), extractToPath, ((cut > 0) ? fullPath.Remove(cut + 1) : String.Empty));
@@ -545,8 +545,11 @@ namespace DATExplorer
         private void CloseDat()
         {
             if (currentDat != null && folderTreeView.SelectedNode != null &&
-                MessageBox.Show(this, String.Format("Вы действително хотите закрыть\n{0} файл?", currentDat), "Dat Explorer II", MessageBoxButtons.YesNo) == DialogResult.Yes) {
+                MessageBox.Show(this, String.Format((LocaleRU) ? "Вы действительно хотите закрыть\n{0} файл?" : "Do you want to close\n{0} file?", currentDat), "Dat Explorer II", MessageBoxButtons.YesNo) == DialogResult.Yes) {
+
                 ControlDat.CloseDat(currentDat);
+                currentDat = null;
+
                 filesListView.Items.Clear();
                 folderTreeView.Nodes.RemoveAt(Misc.GetRootNode(folderTreeView.SelectedNode).Index);
 
@@ -576,6 +579,10 @@ namespace DATExplorer
             extractFilesToolStripMenuItem.Enabled = (filesListView.SelectedItems.Count != 0);
             openToolStripMenuItem.Enabled = (filesListView.SelectedItems.Count == 1);
             renameToolStripMenuItem.Enabled = openToolStripMenuItem.Enabled;
+
+            importFilesToolStripMenuItem.Enabled = (currentDat != null);
+            importFoldersToolStripMenuItem.Enabled = (currentDat != null);
+            createFolderToolStripMenuItem1.Enabled = (currentDat != null);
         }
 
         #region Drag list items
@@ -597,12 +604,16 @@ namespace DATExplorer
                 foreach (ListViewItem item in filesListView.SelectedItems)
                 {
                     if (item.Tag != null) {
-                        dropSelected.Add(((sFile)item.Tag).path);
+                        sFile file = (sFile)item.Tag;
+                        if (!file.isVirtual) dropSelected.Add(file.path);
                     } else { // for selected folder
                         GetFolderFiles(dropSelected, item.Name);
                     }
                 }
-
+                if (dropSelected.Count == 0) {
+                    filesListView.DoDragDrop(new DataObject(DataFormats.FileDrop, ""), DragDropEffects.None);
+                    return;
+                }
                 dragListActive = true;
                 dropExtractPath = string.Empty;
 
@@ -645,7 +656,7 @@ namespace DATExplorer
 
         private void filesListView_DragEnter(object sender, DragEventArgs e)
         {
-            if (treeDragActive)
+            if (treeDragActive || currentDat == null)
                 e.Effect = DragDropEffects.None;
             else
                 e.Effect = DragDropEffects.Copy;
@@ -672,7 +683,7 @@ namespace DATExplorer
             if (newDat == string.Empty) return;
 
             if (ControlDat.DatIsOpen(newDat)) {
-                MessageBox.Show("Данный DAT файл уже открыт.");
+                MessageBox.Show((LocaleRU) ? "Данный DAT файл уже открыт!" : "This DAT file is already open!");
                 return;
             }
 
@@ -807,8 +818,13 @@ namespace DATExplorer
 
         private void folderTreeView_DragDrop(object sender, DragEventArgs e)
         {
+            if (treeDragActive) return;
+
             var drop = (string[])e.Data.GetData(DataFormats.FileDrop);
-            OpenDat(drop[0]);
+            foreach (var file in drop)
+            {
+                OpenDat(file);
+            }
         }
         #endregion
 
@@ -861,8 +877,11 @@ namespace DATExplorer
             string renameFolderPath = folderPath.Remove(i) + e.Label + '\\';
 
             if (dat.FolderExist(renameFolderPath, false)) {
+                MessageBox.Show((LocaleRU)
+                                ? "Директория с таким именем уже существует."
+                                : "This directory already exists.",
+                                "Dat Explorer II", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 e.CancelEdit = true;
-                MessageBox.Show("Директория с таким именем уже существует.", "Dat Explorer II", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             e.Node.Name = renameFolderPath.ToLowerInvariant();
@@ -893,14 +912,20 @@ namespace DATExplorer
                     {
                         if (e.Label.Equals(item.Text, StringComparison.OrdinalIgnoreCase)) {
                             if (item.Tag == null) {
-                                MessageBox.Show("Директория с таким именем уже существует.", "Dat Explorer II", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                MessageBox.Show((LocaleRU)
+                                                 ? "Директория с таким именем уже существует."
+                                                 : "This directory already exists.",
+                                                 "Dat Explorer II", MessageBoxButtons.OK, MessageBoxIcon.Error);
                                 if (createFolder) {
                                    newName = filesListView.Items[e.Item].Text;
                                    e.CancelEdit = true;
                                    break;
                                 }
                             } else { // file
-                                MessageBox.Show("Файл с таким именем уже существует.", "Dat Explorer II", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                MessageBox.Show((LocaleRU)
+                                                ? "Файл с таким именем уже существует."
+                                                : "The file with the same name already exists.",
+                                                "Dat Explorer II", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             }
                             e.CancelEdit = true;
                             return;
@@ -950,9 +975,11 @@ namespace DATExplorer
         {
             OpenDat dat = ControlDat.GetDat(currentDat);
 
-            string message = "Сохранить изменения в DAT файл?";
-            if (!dat.IsFO2Type()) message += "\n\nПримечание: Данная версия программы не поддерживает сжатие добавленных файлов для DAT формата Fallout 1.";
-
+            string message = (LocaleRU) ? "Сохранить изменения в DAT файл?" : "Save changes to a DAT file?";
+            if (!dat.IsFO2Type())
+                message += (LocaleRU)
+                          ? "\n\nПримечание: Данная версия программы не поддерживает сжатие добавленных файлов для DAT формата Fallout 1."
+                          : "\n\nNote: This version does not support the compression of the added files for DAT Fallout 1 format.";
             if (MessageBox.Show(message, "Dat Explorer II", MessageBoxButtons.YesNo) == DialogResult.No) return;
 
             statusToolStripStatusLabel.Text = "Saving:";
@@ -991,7 +1018,10 @@ namespace DATExplorer
 
         private void Delete(bool isList)
         {
-            if (MessageBox.Show("Вы действительно хотите это удалить?", "Dat Explorer II", MessageBoxButtons.YesNo) == DialogResult.No) return;
+            if (MessageBox.Show((LocaleRU)
+                                ? "Вы действительно хотите это удалить?"
+                                : "Do you want to delete it?",
+                                "Dat Explorer II", MessageBoxButtons.YesNo) == DialogResult.No) return;
 
             statusToolStripStatusLabel.Text = "Deleting:";
             textToolStripStatusLabel.Text = "Prepare...";
@@ -1045,6 +1075,11 @@ namespace DATExplorer
                 toolStripProgressBar.Maximum = listFiles.Count;
                 ControlDat.GetDat(currentDat).DeleteFile(listFiles, false);
             }
+        }
+
+        private void assosToolStripButton_Click(object sender, EventArgs e)
+        {
+            FileAssociation.Associate(true);
         }
     }
 }

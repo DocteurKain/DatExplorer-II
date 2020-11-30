@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Microsoft.Win32;
+using System.Configuration;
 
 namespace DATExplorer
 {
@@ -18,8 +19,11 @@ namespace DATExplorer
 
         public static void Associate(bool force = false)
         {
-            if (IsAssociated || MessageBox.Show("Do you want to associate the .dat file to the Dat Explorer?",
-                "Associate file", MessageBoxButtons.YesNo) == DialogResult.No) {
+            if ((!force && IsAssociated) || MessageBox.Show((ExplorerForm.LocaleRU)
+                ? "Вы желаете ассоциировать .dat файлы с программой DAT Explorer?"
+                : "Do you want to associate .dat files with Dat Explorer?",
+                "Associate file", MessageBoxButtons.YesNo) == DialogResult.No)
+            {
                 return;
             }
 
@@ -49,6 +53,24 @@ namespace DATExplorer
                 if (reg != null) value = reg.GetValue("", string.Empty).ToString();
                 return (value == appName);
             }
+        }
+
+        public static String GetConfig(String Key)
+        {
+            var settings = ConfigurationManager.AppSettings;
+            return settings[Key];
+        }
+
+        public static void SetConfig(String Key, String value)
+        {
+            Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            var settings = config.AppSettings.Settings;
+            if (settings[Key] == null) {
+                settings.Add(Key, value);
+            } else {
+                settings[Key].Value = value;
+            }
+            config.Save(ConfigurationSaveMode.Modified);
         }
     }
 }

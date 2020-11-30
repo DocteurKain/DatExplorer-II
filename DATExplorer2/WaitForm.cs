@@ -176,9 +176,9 @@ namespace DATExplorer
         private void Saving()
         {
             if (ExplorerForm.LocaleRU)
-                label1.Text = "Подождите идет сохранение Dat файла...";
+                label1.Text = "Подождите идет сохранение DAT файла...";
             else
-                label1.Text = "Wait for the files to be deleted...";
+                label1.Text = "Wait for saving the DAT file ...";
 
             WorkerRun();
         }

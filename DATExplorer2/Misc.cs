@@ -10,14 +10,16 @@ namespace DATExplorer
     {
         internal static void BuildTreeSub(OpenDat dat, TreeNode root)
         {
-            foreach (var folder in dat.Folders) {
+            foreach (var folder in dat.Folders)
+            {
                 if (folder.Key.Length > 1) {
                     string[] dirs = folder.Key.Split(new char[] { '\\' }, StringSplitOptions.RemoveEmptyEntries); // dirs in lower case
 
                     TreeNode tn = root;
                     string parentsDir = String.Empty;
 
-                    for (int i = 0; i < dirs.Length; i++) {
+                    for (int i = 0; i < dirs.Length; i++)
+                    {
                         parentsDir += dirs[i] + "\\";
                         TreeNode find = Misc.FindNode(dirs[i], tn);
                         if (find == null) {
@@ -25,8 +27,6 @@ namespace DATExplorer
                             tn.Name = parentsDir; // путь к папке (не должен содержать знак разделителя пути в начале)
                         } else
                             tn = find;
-
-                        //parentsDir += "\\";
                     }
                 }
             }

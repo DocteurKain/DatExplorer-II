@@ -60,6 +60,9 @@
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.OpenToolStripButton = new System.Windows.Forms.ToolStripButton();
+            this.CreateNewToolStripButton = new System.Windows.Forms.ToolStripDropDownButton();
+            this.fallout2ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.fallout1ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.SaveToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator = new System.Windows.Forms.ToolStripSeparator();
@@ -72,6 +75,8 @@
             this.listToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.detailsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
+            this.assosToolStripButton = new System.Windows.Forms.ToolStripButton();
+            this.toolStripSeparator12 = new System.Windows.Forms.ToolStripSeparator();
             this.infoToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.statusToolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
@@ -87,9 +92,6 @@
             this.CreateNewDatDialog = new System.Windows.Forms.SaveFileDialog();
             this.importFilesDialog = new System.Windows.Forms.OpenFileDialog();
             this.folderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog();
-            this.CreateNewToolStripButton = new System.Windows.Forms.ToolStripDropDownButton();
-            this.fallout2ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.fallout1ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.cmsFolderTree.SuspendLayout();
             this.listViewContextMenuStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -120,7 +122,7 @@
             this.folderTreeView.Location = new System.Drawing.Point(0, 0);
             this.folderTreeView.Name = "folderTreeView";
             this.folderTreeView.SelectedImageIndex = 1;
-            this.folderTreeView.Size = new System.Drawing.Size(290, 594);
+            this.folderTreeView.Size = new System.Drawing.Size(290, 592);
             this.folderTreeView.TabIndex = 0;
             this.folderTreeView.AfterLabelEdit += new System.Windows.Forms.NodeLabelEditEventHandler(this.folderTreeView_AfterLabelEdit);
             this.folderTreeView.ItemDrag += new System.Windows.Forms.ItemDragEventHandler(this.folderTreeView_ItemDrag);
@@ -168,7 +170,8 @@
             // 
             this.addFoldersToolStripMenuItem.Name = "addFoldersToolStripMenuItem";
             this.addFoldersToolStripMenuItem.Size = new System.Drawing.Size(183, 22);
-            this.addFoldersToolStripMenuItem.Text = "Import folder(s)";
+            this.addFoldersToolStripMenuItem.Text = "Import folder";
+            this.addFoldersToolStripMenuItem.Click += new System.EventHandler(this.importFoldersToolStripMenuItem_Click);
             // 
             // toolStripSeparator6
             // 
@@ -239,7 +242,7 @@
             this.filesListView.LargeImageList = this.listImageList;
             this.filesListView.Location = new System.Drawing.Point(0, 0);
             this.filesListView.Name = "filesListView";
-            this.filesListView.Size = new System.Drawing.Size(714, 594);
+            this.filesListView.Size = new System.Drawing.Size(714, 592);
             this.filesListView.SmallImageList = this.listSmallImageList;
             this.filesListView.TabIndex = 1;
             this.filesListView.UseCompatibleStateImageBehavior = false;
@@ -333,7 +336,7 @@
             // 
             this.importFoldersToolStripMenuItem.Name = "importFoldersToolStripMenuItem";
             this.importFoldersToolStripMenuItem.Size = new System.Drawing.Size(229, 22);
-            this.importFoldersToolStripMenuItem.Text = "Import folder(s) with files";
+            this.importFoldersToolStripMenuItem.Text = "Import folder with files";
             this.importFoldersToolStripMenuItem.ToolTipText = "Импортирует выбранные каталоги и их файлы со структурой вложенных папок в текущий" +
     " каталог.";
             this.importFoldersToolStripMenuItem.Click += new System.EventHandler(this.importFoldersToolStripMenuItem_Click);
@@ -401,13 +404,14 @@
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.filesListView);
-            this.splitContainer1.Size = new System.Drawing.Size(1008, 594);
+            this.splitContainer1.Size = new System.Drawing.Size(1008, 592);
             this.splitContainer1.SplitterDistance = 290;
             this.splitContainer1.TabIndex = 2;
             // 
             // toolStrip1
             // 
-            this.toolStrip1.Dock = System.Windows.Forms.DockStyle.None;
+            this.toolStrip1.AllowMerge = false;
+            this.toolStrip1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.OpenToolStripButton,
             this.CreateNewToolStripButton,
@@ -420,28 +424,57 @@
             this.toolStripSeparator1,
             this.stileToolStripDropDownButton,
             this.toolStripSeparator3,
+            this.assosToolStripButton,
+            this.toolStripSeparator12,
             this.infoToolStripButton});
-            this.toolStrip1.Location = new System.Drawing.Point(3, 0);
+            this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(359, 37);
+            this.toolStrip1.Size = new System.Drawing.Size(1008, 39);
+            this.toolStrip1.Stretch = true;
             this.toolStrip1.TabIndex = 3;
-            this.toolStrip1.Text = "toolStrip1";
             // 
             // OpenToolStripButton
             // 
             this.OpenToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("OpenToolStripButton.Image")));
             this.OpenToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.OpenToolStripButton.Name = "OpenToolStripButton";
-            this.OpenToolStripButton.Size = new System.Drawing.Size(41, 34);
+            this.OpenToolStripButton.Size = new System.Drawing.Size(41, 36);
             this.OpenToolStripButton.Text = "Open";
             this.OpenToolStripButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
             this.OpenToolStripButton.ToolTipText = "Open Dat file";
             this.OpenToolStripButton.Click += new System.EventHandler(this.OpenToolStripButton_Click);
             // 
+            // CreateNewToolStripButton
+            // 
+            this.CreateNewToolStripButton.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.fallout2ToolStripMenuItem,
+            this.fallout1ToolStripMenuItem});
+            this.CreateNewToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("CreateNewToolStripButton.Image")));
+            this.CreateNewToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.CreateNewToolStripButton.Name = "CreateNewToolStripButton";
+            this.CreateNewToolStripButton.Size = new System.Drawing.Size(45, 36);
+            this.CreateNewToolStripButton.Text = "New";
+            this.CreateNewToolStripButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            this.CreateNewToolStripButton.ToolTipText = "Creare new Dat";
+            // 
+            // fallout2ToolStripMenuItem
+            // 
+            this.fallout2ToolStripMenuItem.Name = "fallout2ToolStripMenuItem";
+            this.fallout2ToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.fallout2ToolStripMenuItem.Text = "DAT: Fallout 2";
+            this.fallout2ToolStripMenuItem.Click += new System.EventHandler(this.fallout2ToolStripMenuItem_Click);
+            // 
+            // fallout1ToolStripMenuItem
+            // 
+            this.fallout1ToolStripMenuItem.Name = "fallout1ToolStripMenuItem";
+            this.fallout1ToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.fallout1ToolStripMenuItem.Text = "DAT: Fallout 1";
+            this.fallout1ToolStripMenuItem.Click += new System.EventHandler(this.fallout1ToolStripMenuItem_Click);
+            // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(6, 37);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(6, 39);
             // 
             // SaveToolStripButton
             // 
@@ -449,7 +482,7 @@
             this.SaveToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("SaveToolStripButton.Image")));
             this.SaveToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.SaveToolStripButton.Name = "SaveToolStripButton";
-            this.SaveToolStripButton.Size = new System.Drawing.Size(37, 34);
+            this.SaveToolStripButton.Size = new System.Drawing.Size(37, 36);
             this.SaveToolStripButton.Text = "Save";
             this.SaveToolStripButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
             this.SaveToolStripButton.ToolTipText = "Save current Dat";
@@ -458,7 +491,7 @@
             // toolStripSeparator
             // 
             this.toolStripSeparator.Name = "toolStripSeparator";
-            this.toolStripSeparator.Size = new System.Drawing.Size(6, 37);
+            this.toolStripSeparator.Size = new System.Drawing.Size(6, 39);
             // 
             // closeToolStripButton
             // 
@@ -466,7 +499,7 @@
             this.closeToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("closeToolStripButton.Image")));
             this.closeToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.closeToolStripButton.Name = "closeToolStripButton";
-            this.closeToolStripButton.Size = new System.Drawing.Size(39, 34);
+            this.closeToolStripButton.Size = new System.Drawing.Size(39, 36);
             this.closeToolStripButton.Text = "Close";
             this.closeToolStripButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
             this.closeToolStripButton.ToolTipText = "Close current Dat";
@@ -475,7 +508,7 @@
             // toolStripSeparator9
             // 
             this.toolStripSeparator9.Name = "toolStripSeparator9";
-            this.toolStripSeparator9.Size = new System.Drawing.Size(6, 37);
+            this.toolStripSeparator9.Size = new System.Drawing.Size(6, 39);
             // 
             // upToolStripButton
             // 
@@ -483,7 +516,7 @@
             this.upToolStripButton.Image = global::DATExplorer.Properties.Resources.GoToParentFolderHS;
             this.upToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.upToolStripButton.Name = "upToolStripButton";
-            this.upToolStripButton.Size = new System.Drawing.Size(44, 34);
+            this.upToolStripButton.Size = new System.Drawing.Size(44, 36);
             this.upToolStripButton.Text = "Up Dir";
             this.upToolStripButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
             this.upToolStripButton.ToolTipText = "Goto parent folder";
@@ -492,7 +525,7 @@
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 37);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 39);
             // 
             // stileToolStripDropDownButton
             // 
@@ -503,7 +536,7 @@
             this.stileToolStripDropDownButton.Image = global::DATExplorer.Properties.Resources.ViewThumbnails;
             this.stileToolStripDropDownButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.stileToolStripDropDownButton.Name = "stileToolStripDropDownButton";
-            this.stileToolStripDropDownButton.Size = new System.Drawing.Size(47, 34);
+            this.stileToolStripDropDownButton.Size = new System.Drawing.Size(47, 36);
             this.stileToolStripDropDownButton.Text = "View";
             this.stileToolStripDropDownButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
             this.stileToolStripDropDownButton.ToolTipText = "View details";
@@ -511,7 +544,7 @@
             // largeToolStripMenuItem
             // 
             this.largeToolStripMenuItem.Name = "largeToolStripMenuItem";
-            this.largeToolStripMenuItem.Size = new System.Drawing.Size(109, 22);
+            this.largeToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.largeToolStripMenuItem.Text = "Large";
             this.largeToolStripMenuItem.Click += new System.EventHandler(this.largeToolStripMenuItem_Click);
             // 
@@ -520,21 +553,39 @@
             this.listToolStripMenuItem.Checked = true;
             this.listToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.listToolStripMenuItem.Name = "listToolStripMenuItem";
-            this.listToolStripMenuItem.Size = new System.Drawing.Size(109, 22);
+            this.listToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.listToolStripMenuItem.Text = "List";
             this.listToolStripMenuItem.Click += new System.EventHandler(this.listToolStripMenuItem_Click);
             // 
             // detailsToolStripMenuItem
             // 
             this.detailsToolStripMenuItem.Name = "detailsToolStripMenuItem";
-            this.detailsToolStripMenuItem.Size = new System.Drawing.Size(109, 22);
+            this.detailsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.detailsToolStripMenuItem.Text = "Details";
             this.detailsToolStripMenuItem.Click += new System.EventHandler(this.detailsToolStripMenuItem_Click);
             // 
             // toolStripSeparator3
             // 
             this.toolStripSeparator3.Name = "toolStripSeparator3";
-            this.toolStripSeparator3.Size = new System.Drawing.Size(6, 37);
+            this.toolStripSeparator3.Size = new System.Drawing.Size(6, 39);
+            // 
+            // assosToolStripButton
+            // 
+            this.assosToolStripButton.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.assosToolStripButton.Image = global::DATExplorer.Properties.Resources.dat;
+            this.assosToolStripButton.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
+            this.assosToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.assosToolStripButton.Name = "assosToolStripButton";
+            this.assosToolStripButton.Size = new System.Drawing.Size(36, 36);
+            this.assosToolStripButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            this.assosToolStripButton.ToolTipText = "Associate .dat files with the DAT Explorer.";
+            this.assosToolStripButton.Click += new System.EventHandler(this.assosToolStripButton_Click);
+            // 
+            // toolStripSeparator12
+            // 
+            this.toolStripSeparator12.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.toolStripSeparator12.Name = "toolStripSeparator12";
+            this.toolStripSeparator12.Size = new System.Drawing.Size(6, 39);
             // 
             // infoToolStripButton
             // 
@@ -542,7 +593,7 @@
             this.infoToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("infoToolStripButton.Image")));
             this.infoToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.infoToolStripButton.Name = "infoToolStripButton";
-            this.infoToolStripButton.Size = new System.Drawing.Size(33, 34);
+            this.infoToolStripButton.Size = new System.Drawing.Size(33, 36);
             this.infoToolStripButton.Text = "Info";
             this.infoToolStripButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
             // 
@@ -646,7 +697,7 @@
             // 
             this.toolStripContainer2.ContentPanel.AutoScroll = true;
             this.toolStripContainer2.ContentPanel.Controls.Add(this.splitContainer1);
-            this.toolStripContainer2.ContentPanel.Size = new System.Drawing.Size(1008, 594);
+            this.toolStripContainer2.ContentPanel.Size = new System.Drawing.Size(1008, 592);
             this.toolStripContainer2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.toolStripContainer2.Location = new System.Drawing.Point(0, 0);
             this.toolStripContainer2.Name = "toolStripContainer2";
@@ -684,33 +735,6 @@
             this.folderBrowserDialog.Description = "Select folder for import";
             this.folderBrowserDialog.RootFolder = System.Environment.SpecialFolder.MyComputer;
             this.folderBrowserDialog.ShowNewFolderButton = false;
-            // 
-            // CreateNewToolStripButton
-            // 
-            this.CreateNewToolStripButton.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.fallout2ToolStripMenuItem,
-            this.fallout1ToolStripMenuItem});
-            this.CreateNewToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("CreateNewToolStripButton.Image")));
-            this.CreateNewToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.CreateNewToolStripButton.Name = "CreateNewToolStripButton";
-            this.CreateNewToolStripButton.Size = new System.Drawing.Size(45, 34);
-            this.CreateNewToolStripButton.Text = "New";
-            this.CreateNewToolStripButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.CreateNewToolStripButton.ToolTipText = "Creare new Dat";
-            // 
-            // fallout2ToolStripMenuItem
-            // 
-            this.fallout2ToolStripMenuItem.Name = "fallout2ToolStripMenuItem";
-            this.fallout2ToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.fallout2ToolStripMenuItem.Text = "DAT: Fallout 2";
-            this.fallout2ToolStripMenuItem.Click += new System.EventHandler(this.fallout2ToolStripMenuItem_Click);
-            // 
-            // fallout1ToolStripMenuItem
-            // 
-            this.fallout1ToolStripMenuItem.Name = "fallout1ToolStripMenuItem";
-            this.fallout1ToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.fallout1ToolStripMenuItem.Text = "DAT: Fallout 1";
-            this.fallout1ToolStripMenuItem.Click += new System.EventHandler(this.fallout1ToolStripMenuItem_Click);
             // 
             // ExplorerForm
             // 
@@ -814,6 +838,8 @@
         private System.Windows.Forms.ToolStripDropDownButton CreateNewToolStripButton;
         private System.Windows.Forms.ToolStripMenuItem fallout2ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem fallout1ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripButton assosToolStripButton;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator12;
     }
 }
 
