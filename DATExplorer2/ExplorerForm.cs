@@ -571,7 +571,7 @@ namespace DATExplorer
 
             closeDATToolStripMenuItem.Enabled = state;
 
-            currentDat = (folderTreeView.SelectedNode != null) ? Misc.GetDatName(folderTreeView.SelectedNode) : String.Empty;
+            currentDat = (folderTreeView.SelectedNode != null) ? Misc.GetDatName(folderTreeView.SelectedNode) : null;
         }
 
         private void listViewContextMenuStrip_Opening(object sender, CancelEventArgs e)
@@ -580,9 +580,10 @@ namespace DATExplorer
             openToolStripMenuItem.Enabled = (filesListView.SelectedItems.Count == 1);
             renameToolStripMenuItem.Enabled = openToolStripMenuItem.Enabled;
 
-            importFilesToolStripMenuItem.Enabled = (currentDat != null);
-            importFoldersToolStripMenuItem.Enabled = (currentDat != null);
-            createFolderToolStripMenuItem1.Enabled = (currentDat != null);
+            bool state = (currentDat != null);
+            importFilesToolStripMenuItem.Enabled = state;
+            importFoldersToolStripMenuItem.Enabled = state;
+            createFolderToolStripMenuItem1.Enabled = state;
         }
 
         #region Drag list items

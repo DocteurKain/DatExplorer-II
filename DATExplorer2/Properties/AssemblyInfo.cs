@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // Управление общими сведениями о сборке осуществляется с помощью 
 // набора атрибутов. Измените значения этих атрибутов, чтобы изменить сведения,
 // связанные со сборкой.
-[assembly: AssemblyTitle("Просмоторщик и распаковщик Dat файлов Fallout 1/2")]
+[assembly: AssemblyTitle("Fallout 1/2 Dat packer/unpacker and file manager.")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("by mr.Stalin")]
+[assembly: AssemblyCompany("Mr.Stalin")]
 [assembly: AssemblyProduct("DAT Explorer 2")]
-[assembly: AssemblyCopyright("Copyright © 2019 - 2020")]
+[assembly: AssemblyCopyright("Copyright © 2019 - 2020 by Mr.Stalin")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // Можно задать все значения или принять номер построения и номер редакции по умолчанию, 
 // используя "*", как показано ниже:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("0.0.0.0")]
-[assembly: AssemblyFileVersion("0.9.0.0")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]
