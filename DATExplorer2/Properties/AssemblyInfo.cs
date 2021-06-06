@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Mr.Stalin")]
 [assembly: AssemblyProduct("DAT Explorer 2")]
-[assembly: AssemblyCopyright("Copyright © 2019 - 2020 by Mr.Stalin")]
+[assembly: AssemblyCopyright("Copyright © 2019 - 2021 by Mr.Stalin")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -33,4 +33,4 @@ using System.Runtime.InteropServices;
 // используя "*", как показано ниже:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.1.0.0")]

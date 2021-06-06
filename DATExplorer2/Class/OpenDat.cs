@@ -306,5 +306,21 @@ namespace DATExplorer
             shouldSave = SaveType.None;
             return refresh;
         }
+
+        internal List<sFile> FindFilesByPattern(string pattern)
+        {
+            List<sFile> list = new List<sFile>();
+
+            foreach (var folder in Folders)
+            {
+                foreach (var file in folder.Value.GetFiles())
+                {
+                    if (file.file.name.IndexOf(pattern, StringComparison.OrdinalIgnoreCase) != -1) {
+                        list.Add(file);
+                    }
+                }
+            }
+            return list;
+        }
     }
 }

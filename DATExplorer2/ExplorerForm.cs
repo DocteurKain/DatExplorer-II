@@ -1082,5 +1082,96 @@ namespace DATExplorer
         {
             FileAssociation.Associate(true);
         }
+
+        private bool CheckElement(int i)
+        {
+            if (filesListView.Items[i].Text.IndexOf(stbFindFile.Text, StringComparison.OrdinalIgnoreCase) != -1) {
+                for (int j = 0; j < filesListView.SelectedIndices.Count; j++)
+                {
+                    int s = filesListView.SelectedIndices[j];
+                    filesListView.Items[s].Selected = false;
+                }
+                filesListView.Items[i].Selected = true;
+                filesListView.Items[i].EnsureVisible();
+                return true;
+            }
+            return false;
+        }
+
+        private void stbFindFile_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            stbFindFile.BackColor = SystemColors.Window;
+            if ((e.KeyChar != 13  && e.KeyChar != 10) || stbFindFile.Text.Length == 0 || filesListView.Items.Count == 0) return;
+
+            if (e.KeyChar == 10) { // back
+                int start = (filesListView.SelectedIndices.Count != 0) ? filesListView.SelectedIndices[filesListView.SelectedIndices.Count - 1] : filesListView.Items.Count;
+                for (int i = start - 1; i > 0;)
+                {
+                    if (CheckElement(--i)) {
+                        e.Handled = true;
+                        return;
+                    }
+                }
+            } else {
+                int start = (filesListView.SelectedIndices.Count != 0) ? filesListView.SelectedIndices[filesListView.SelectedIndices.Count - 1] + 1 : 0;
+                for (int i = start; i < filesListView.Items.Count; i++)
+                {
+                    if (CheckElement(i)) {
+                        e.Handled = true;
+                        return;
+                    }
+                }
+            }
+            stbFindFile.BackColor = Color.MistyRose;
+        }
+
+        private void tsBtnSearch_Click(object sender, EventArgs e)
+        {
+            if (currentDat == null) return;
+
+            if (stbFindFile.Text.Length <= 1) {
+                stbFindFile.BackColor = Color.MistyRose;
+                return;
+            }
+
+            List<sFile> list = ControlDat.GetDat(currentDat).FindFilesByPattern(stbFindFile.Text);
+            if (list.Count == 0) {
+                stbFindFile.BackColor = Color.MistyRose;
+                return;
+            }
+            FindFilesListForm listForm = new FindFilesListForm(list);
+            listForm.GotoFile += GotoListFile;
+            listForm.Show(this);
+        }
+
+        private void GotoListFile(sFile file)
+        {
+            TreeNode node = Misc.FindPathNode(file.file.pathTree.ToLowerInvariant(), Misc.GetRootNode(currentNode));
+            if (node != null) {
+                folderTreeView.SelectedNode = node;
+                if (currentNode != null) currentNode.ForeColor = Color.White;
+                currentNode = folderTreeView.SelectedNode;
+                currentNode.ForeColor = Color.Yellow;
+
+                FindFiles(currentDat, node);
+
+                foreach (ListViewItem item in filesListView.Items)
+                {
+                    if (item.Text == file.file.name) {
+                        item.Selected = true;
+                        //item.Focused = true;
+                        item.EnsureVisible();
+                        break;
+                    }
+                }
+                upToolStripButton.Enabled = (currentNode.Parent != null);
+            }
+        }
+
+        private void infoToolStripButton_Click(object sender, EventArgs e)
+        {
+            //https://github.com/FakelsHub/DatExplorer-II
+
+        }
     }
 }

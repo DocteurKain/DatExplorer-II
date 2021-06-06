@@ -77,6 +77,9 @@
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.assosToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator12 = new System.Windows.Forms.ToolStripSeparator();
+            this.tsBtnSearch = new System.Windows.Forms.ToolStripButton();
+            this.stbFindFile = new System.Windows.Forms.ToolStripTextBox();
+            this.toolStripSeparator13 = new System.Windows.Forms.ToolStripSeparator();
             this.infoToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.statusToolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
@@ -411,7 +414,7 @@
             // toolStrip1
             // 
             this.toolStrip1.AllowMerge = false;
-            this.toolStrip1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.toolStrip1.Dock = System.Windows.Forms.DockStyle.None;
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.OpenToolStripButton,
             this.CreateNewToolStripButton,
@@ -426,6 +429,9 @@
             this.toolStripSeparator3,
             this.assosToolStripButton,
             this.toolStripSeparator12,
+            this.tsBtnSearch,
+            this.stbFindFile,
+            this.toolStripSeparator13,
             this.infoToolStripButton});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
@@ -544,7 +550,7 @@
             // largeToolStripMenuItem
             // 
             this.largeToolStripMenuItem.Name = "largeToolStripMenuItem";
-            this.largeToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.largeToolStripMenuItem.Size = new System.Drawing.Size(109, 22);
             this.largeToolStripMenuItem.Text = "Large";
             this.largeToolStripMenuItem.Click += new System.EventHandler(this.largeToolStripMenuItem_Click);
             // 
@@ -553,14 +559,14 @@
             this.listToolStripMenuItem.Checked = true;
             this.listToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.listToolStripMenuItem.Name = "listToolStripMenuItem";
-            this.listToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.listToolStripMenuItem.Size = new System.Drawing.Size(109, 22);
             this.listToolStripMenuItem.Text = "List";
             this.listToolStripMenuItem.Click += new System.EventHandler(this.listToolStripMenuItem_Click);
             // 
             // detailsToolStripMenuItem
             // 
             this.detailsToolStripMenuItem.Name = "detailsToolStripMenuItem";
-            this.detailsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.detailsToolStripMenuItem.Size = new System.Drawing.Size(109, 22);
             this.detailsToolStripMenuItem.Text = "Details";
             this.detailsToolStripMenuItem.Click += new System.EventHandler(this.detailsToolStripMenuItem_Click);
             // 
@@ -587,15 +593,48 @@
             this.toolStripSeparator12.Name = "toolStripSeparator12";
             this.toolStripSeparator12.Size = new System.Drawing.Size(6, 39);
             // 
+            // tsBtnSearch
+            // 
+            this.tsBtnSearch.Image = ((System.Drawing.Image)(resources.GetObject("tsBtnSearch.Image")));
+            this.tsBtnSearch.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsBtnSearch.Name = "tsBtnSearch";
+            this.tsBtnSearch.Size = new System.Drawing.Size(48, 36);
+            this.tsBtnSearch.Text = "Search";
+            this.tsBtnSearch.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            this.tsBtnSearch.ToolTipText = "Global search file.";
+            this.tsBtnSearch.Click += new System.EventHandler(this.tsBtnSearch_Click);
+            // 
+            // stbFindFile
+            // 
+            this.stbFindFile.AutoSize = false;
+            this.stbFindFile.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.stbFindFile.Font = new System.Drawing.Font("Tahoma", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.stbFindFile.Name = "stbFindFile";
+            this.stbFindFile.Overflow = System.Windows.Forms.ToolStripItemOverflow.Never;
+            this.stbFindFile.Padding = new System.Windows.Forms.Padding(0, 12, 0, 0);
+            this.stbFindFile.Size = new System.Drawing.Size(200, 26);
+            this.stbFindFile.ToolTipText = "Finds file in current folder.\r\nEnter - Forward search.\r\nCtrl+Enter - Backward sea" +
+    "rch.";
+            this.stbFindFile.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.stbFindFile_KeyPress);
+            // 
+            // toolStripSeparator13
+            // 
+            this.toolStripSeparator13.Name = "toolStripSeparator13";
+            this.toolStripSeparator13.Size = new System.Drawing.Size(6, 39);
+            // 
             // infoToolStripButton
             // 
-            this.infoToolStripButton.Enabled = false;
+            this.infoToolStripButton.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.infoToolStripButton.Font = new System.Drawing.Font("Tahoma", 9.75F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Underline))), System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.infoToolStripButton.ForeColor = System.Drawing.Color.Crimson;
             this.infoToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("infoToolStripButton.Image")));
+            this.infoToolStripButton.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.infoToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.infoToolStripButton.Name = "infoToolStripButton";
-            this.infoToolStripButton.Size = new System.Drawing.Size(33, 36);
-            this.infoToolStripButton.Text = "Info";
-            this.infoToolStripButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            this.infoToolStripButton.Size = new System.Drawing.Size(64, 36);
+            this.infoToolStripButton.Text = "Donate!";
+            this.infoToolStripButton.TextImageRelation = System.Windows.Forms.TextImageRelation.Overlay;
+            this.infoToolStripButton.Click += new System.EventHandler(this.infoToolStripButton_Click);
             // 
             // statusStrip1
             // 
@@ -744,7 +783,7 @@
             this.Controls.Add(this.toolStripContainer2);
             this.DoubleBuffered = true;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.MinimumSize = new System.Drawing.Size(200, 100);
+            this.MinimumSize = new System.Drawing.Size(300, 150);
             this.Name = "ExplorerForm";
             this.Text = "DAT Explorer II - v";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.ExplorerForm_FormClosed);
@@ -840,6 +879,9 @@
         private System.Windows.Forms.ToolStripMenuItem fallout1ToolStripMenuItem;
         private System.Windows.Forms.ToolStripButton assosToolStripButton;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator12;
+        private System.Windows.Forms.ToolStripButton tsBtnSearch;
+        private System.Windows.Forms.ToolStripTextBox stbFindFile;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator13;
     }
 }
 

@@ -76,7 +76,7 @@ namespace DATExplorer
                 if (node.Name == path) {
                     return node;
                 }
-                TreeNode find = FindNode(path, node);
+                TreeNode find = FindPathNode(path, node);
                 if (find != null) return find;
             }
             return null;
