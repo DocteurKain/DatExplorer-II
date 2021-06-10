@@ -187,6 +187,8 @@ namespace DATExplorer
             {
                 dat.AddVirtualFile(file, treeFolder);
             }
+            dat.OverwriteAll = false;
+
             // обновление списка
             FindFiles(currentDat, treeFolder);
 
@@ -222,6 +224,7 @@ namespace DATExplorer
                     }
                 }
             }
+            dat.OverwriteAll = false;
 
             // обновление списка
             if (rootFolder != null) ReBuildTreeNode(dat);
@@ -480,8 +483,11 @@ namespace DATExplorer
             var item = filesListView.SelectedItems[0];
             if (item.Tag != null) { // open file
                 sFile sfile = (sFile)item.Tag;
-                if (sfile.isVirtual) return;
-
+                if (sfile.isVirtual) {
+                    string realfile = ControlDat.GetDat(currentDat).GetFile(sfile.path).RealFile;
+                    if (File.Exists(realfile)) System.Diagnostics.Process.Start("explorer", realfile);
+                    return;
+                }
                 var file = new string[1] { sfile.path };
 
                 if (sfile.file.info.Size > 1048576) { // 1mb
@@ -1170,8 +1176,7 @@ namespace DATExplorer
 
         private void infoToolStripButton_Click(object sender, EventArgs e)
         {
-            //https://github.com/FakelsHub/DatExplorer-II
-
+            System.Diagnostics.Process.Start("https://github.com/FakelsHub/DatExplorer-II");
         }
     }
 }

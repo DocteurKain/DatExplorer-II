@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
+using System.Windows.Forms;
 
 using DATLib;
 
@@ -157,17 +157,32 @@ namespace DATExplorer
             }
         }
 
+        internal bool OverwriteAll { set; get; }
+
         internal void AddVirtualFile(string realPathFile, string treeFolderPath)
         {
             string folderPath = treeFolderPath.ToLowerInvariant();
+            string fileName = Path.GetFileName(realPathFile);
 
             bool folderExist = treeFiles.ContainsKey(folderPath);
-            if (folderExist && treeFiles[folderPath].FileExist(Path.GetFileName(realPathFile))) {
-                System.Windows.Forms.MessageBox.Show(String.Format((ExplorerForm.LocaleRU)
-                                                                    ? "Файл {0}{1} уже существует."
-                                                                    : "File {0}{1} already exist.",
-                                                                    folderPath, Path.GetFileName(realPathFile)));
-                return; // не добавляем дубликаты
+            if (folderExist && treeFiles[folderPath].FileExist(fileName)) {
+
+                DialogResult result = (OverwriteAll) ? DialogResult.Retry
+                                                     : new CustomMessageBox(String.Format((ExplorerForm.LocaleRU)
+                                                                             ? "Файл: {0}{1} уже существует!\nПерезаписать файл?"
+                                                                             : "File: {0}{1} already exist!\nOverwrite file?",
+                                                                             folderPath, fileName)).ShowDialog();
+                switch (result) {
+                    case DialogResult.Retry: // all
+                    case DialogResult.Yes:
+                        OverwriteAll = (result == DialogResult.Retry);
+                        var list = new List<string>();
+                        list.Add(folderPath + fileName.ToLowerInvariant());
+                        DeleteFile(list, false);
+                        break;
+                    default:
+                        return; // не добавляем дубликаты
+                }
             }
 
             System.IO.FileInfo file = new System.IO.FileInfo(realPathFile);
@@ -305,6 +320,11 @@ namespace DATExplorer
             bool refresh = (shouldSave != SaveType.DirTree);
             shouldSave = SaveType.None;
             return refresh;
+        }
+
+        internal DATFile GetFile(string fileName)
+        {
+            return dat.GetFileByName(fileName);
         }
 
         internal List<sFile> FindFilesByPattern(string pattern)

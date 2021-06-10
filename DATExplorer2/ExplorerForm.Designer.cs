@@ -626,7 +626,7 @@
             // 
             this.infoToolStripButton.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
             this.infoToolStripButton.Font = new System.Drawing.Font("Tahoma", 9.75F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Underline))), System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.infoToolStripButton.ForeColor = System.Drawing.Color.Crimson;
+            this.infoToolStripButton.ForeColor = System.Drawing.Color.DeepPink;
             this.infoToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("infoToolStripButton.Image")));
             this.infoToolStripButton.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.infoToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
@@ -634,6 +634,7 @@
             this.infoToolStripButton.Size = new System.Drawing.Size(64, 36);
             this.infoToolStripButton.Text = "Donate!";
             this.infoToolStripButton.TextImageRelation = System.Windows.Forms.TextImageRelation.Overlay;
+            this.infoToolStripButton.ToolTipText = "Support the development of the program.";
             this.infoToolStripButton.Click += new System.EventHandler(this.infoToolStripButton_Click);
             // 
             // statusStrip1

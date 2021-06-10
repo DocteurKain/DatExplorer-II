@@ -51,6 +51,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Class\TreeFiles.cs" />
+    <Compile Include="CustomMessageBox.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="CustomMessageBox.Designer.cs">
+      <DependentUpon>CustomMessageBox.cs</DependentUpon>
+    </Compile>
     <Compile Include="ExplorerForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -75,6 +81,9 @@
     <Compile Include="WaitForm.Designer.cs">
       <DependentUpon>WaitForm.cs</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="CustomMessageBox.resx">
+      <DependentUpon>CustomMessageBox.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="ExplorerForm.resx">
       <DependentUpon>ExplorerForm.cs</DependentUpon>
     </EmbeddedResource>
