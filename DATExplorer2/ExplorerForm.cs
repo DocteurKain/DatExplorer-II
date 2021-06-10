@@ -38,7 +38,7 @@ namespace DATExplorer
 
             InitializeComponent();
 
-            this.Text += Application.ProductVersion + ".beta - by Mr.Stalin";
+            this.Text += Application.ProductVersion + " - by Mr.Stalin";
 
             SetDoubleBuffered(folderTreeView);
             SetDoubleBuffered(filesListView);
