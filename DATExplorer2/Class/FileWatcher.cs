@@ -6,7 +6,7 @@ namespace DATExplorer
 {
     public class FileWatcher
     {
-        private static readonly string tmpAppFolder = Application.StartupPath + "\\tmp\\";
+        private readonly string tmpAppFolder;
 
         // Filename to identify a drag from the application
         private string dragDropTmpFile;
@@ -22,8 +22,9 @@ namespace DATExplorer
 
         public bool IsRunning { get; private set; }
 
-        public FileWatcher()
+        public FileWatcher(string tempFolder)
         {
+            tmpAppFolder = tempFolder;
             if (!Directory.Exists(tmpAppFolder)) Directory.CreateDirectory(tmpAppFolder);
 
             directoryWatcher = new FileSystemWatcher();

@@ -11,6 +11,8 @@ namespace DATExplorer
 {
     public partial class ExplorerForm : Form
     {
+        private static readonly string tmpAppFolder = Application.StartupPath + "\\tmp" + Path.GetRandomFileName() + "\\";
+
         public static bool LocaleRU { get; private set; }
 
         private string currentDat;
@@ -45,7 +47,7 @@ namespace DATExplorer
 
             LocaleRU = System.Globalization.CultureInfo.CurrentCulture.Name == "ru-RU";
 
-            dragDropFileWatcher = new FileWatcher();
+            dragDropFileWatcher = new FileWatcher(tmpAppFolder);
 
             dragDropFileWatcher.DragDrop += new FileWatcher.DropExplorerEvent(DropHandler);
 
@@ -491,12 +493,12 @@ namespace DATExplorer
                 var file = new string[1] { sfile.path };
 
                 if (sfile.file.info.Size > 1048576) { // 1mb
-                    new WaitForm(this).UnpackFile(Application.StartupPath + "\\tmp\\", file, currentDat);
+                    new WaitForm(this).UnpackFile(tmpAppFolder, file, currentDat);
                 } else {
-                    DATManage.ExtractFile(Application.StartupPath + "\\tmp\\", sfile.path, currentDat);
+                    DATManage.ExtractFile(tmpAppFolder, sfile.path, currentDat);
                 }
 
-                string ofile = Application.StartupPath + "\\tmp\\" + file[0];
+                string ofile = tmpAppFolder + file[0];
                 if (File.Exists(ofile)) System.Diagnostics.Process.Start("explorer", ofile);
             } else { // folder
                 foreach (TreeNode node in folderTreeView.SelectedNode.Nodes)
